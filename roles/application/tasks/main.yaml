@@ -1,0 +1,108 @@
+# Create or update a Application Virtual Machine
+
+- name: Create {{application_server_name}} Storage Account in {{resource_group_name}}
+  azure_rm_storageaccount:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    location: "{{location}}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{application_storage_account}}"
+    account_type: Standard_LRS
+
+- name: Create {{application_server_name}} NIC in "{{resource_group_name}}"
+  azure_rm_networkinterface:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{application_server_name}}"
+    virtual_network: "{{virtual_network_name}}"
+    subnet: "{{internalSubnetName}}"
+    ip_configurations:
+      - name: ipconfig1
+        private_ip_allocation_method: Dynamic
+        public_ip_address_name: "{{application_server_name}}-ext-pip0"
+
+- name: Edit Security Group {{application_server_name}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
+  azure_rm_securitygroup:
+      tenant: "{{ tenantId }}"
+      client_id: "{{ clientId }}"
+      secret: "{{ servicePrincipalSecret }}"
+      subscription_id: "{{ subscriptionId }}"
+      resource_group: "{{resource_group_name}}"
+      name: "{{application_server_name}}"
+      purge_rules: yes
+      rules:
+          - name: 'AllowHTTP'
+            protocol: Tcp
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: "80-83"
+            access: Allow
+            priority: 101
+            direction: Inbound
+          - name: 'AllowHTTPS'
+            protocol: Tcp
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: "443-446"
+            access: Allow
+            priority: 102
+            direction: Inbound
+          - name: 'AllowSSH'
+            protocol: Tcp
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: 22
+            access: Deny
+            priority: 103
+            direction: Inbound
+
+- name: Create {{application_server_name}} Virtual Machine
+  azure_rm_virtualmachine:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    location: "{{location}}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{application_server_name}}"
+    vm_size: Standard_D1_v2
+    storage_account: "{{application_storage_account}}"
+    storage_container: "{{application_server_name}}001"
+    storage_blob: "{{application_server_name}}001.vhd"
+    admin_username: "{{ApplicationAdminUsername}}"
+    admin_password: "{{ApplicationAdminPassword}}"
+    network_interfaces: "{{application_server_name}}"
+    image:
+      offer: UbuntuServer
+      publisher: Canonical
+      sku: 16.04-LTS
+      version: latest
+
+- name: Execute VM Extension for {{application_server_name}}
+  azure_rm_virtualmachine_extension:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    location: "{{location}}"
+    name: External-Script-to-install-Backend-Services
+    resource_group: "{{resource_group_name}}"
+    virtual_machine_name: "{{application_server_name}}"
+    publisher: Microsoft.Azure.Extensions
+    virtual_machine_extension_type: CustomScript
+    type_handler_version: 2.0
+    settings: '{"fileUris": ["{{applicationbuildscript}}"],"commandToExecute": "./init_web.sh"}'
+    auto_upgrade_minor_version: true
+
+
+- name: Webhook Notification to Teams for Build
+  delegate_to: localhost
+  uri:
+    body: "{\"text\": \"Application Server {{application_server_name}} was created in Resource Group {{resource_group_name}}!\"}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: no

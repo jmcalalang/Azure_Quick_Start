@@ -1,0 +1,17 @@
+Azure Ansible Requirements:
+ Package:
+  ansible[azure]
+ Modules:
+  azure_rm_deployment
+
+Docker Requirements:
+ Package:
+  docker-compose, docker-py
+ Modules:
+  (Future)
+
+iControl LX Requirements:
+ Package:
+  rpm
+ Modules:
+  BIGIP iControl LX

@@ -1,0 +1,64 @@
+# Create a resource group
+
+- name: Create {{resource_group_name}} Resource Group
+  azure_rm_resourcegroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    name: "{{resource_group_name}}"
+    location: "{{location}}"
+
+- name: Create {{virtual_network_name}} Virtual Network
+  azure_rm_virtualnetwork:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    location: "{{location}}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{virtual_network_name}}"
+    address_prefixes: "10.128.0.0/16"
+
+- name: Create Subnet Management
+  azure_rm_subnet:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: management
+    address_prefix_cidr: "10.128.1.0/24"
+    virtual_network_name: "{{virtual_network_name}}"
+
+- name: Create Subnet External
+  azure_rm_subnet:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: external
+    address_prefix_cidr: "10.128.10.0/24"
+    virtual_network_name: "{{virtual_network_name}}"
+
+- name: Create Subnet Internal
+  azure_rm_subnet:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: internal
+    address_prefix_cidr: "10.128.20.0/24"
+    virtual_network_name: "{{virtual_network_name}}"
+
+- name: Webhook Notification to Teams for Build
+  delegate_to: localhost
+  uri:
+    body: "{\"text\": \"Resource Group {{resource_group_name}} was created in the {{location}} region!\"}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: no

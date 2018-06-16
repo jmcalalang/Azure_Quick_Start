@@ -1,0 +1,20 @@
+# Destroy a resource group
+- name: Delete "{{resource_group_name}}" Resource Group
+  azure_rm_resourcegroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    name: "{{resource_group_name}}"
+    state: absent
+    force: yes
+
+- name: Webhook Notification to Teams for Build
+  delegate_to: localhost
+  uri:
+    body: "{\"text\": \"Resource Group {{resource_group_name}} and all its contents were destroyed!\"}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: no

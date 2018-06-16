@@ -1,0 +1,7 @@
+---
+-
+  hosts: localhost
+  roles:
+    - destroy_environment
+  vars_files:
+    - /home/snops/f5-rs-azure/parent_parameters.yaml

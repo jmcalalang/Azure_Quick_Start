@@ -1,0 +1,62 @@
+# Create or update a template deployment based on uris and template link
+# for a single BIGIP with 3-nic's
+
+    - name: Run F5 ARM Template to build a single BIG-IP with 1 NIC
+      azure_rm_deployment:
+        tenant: "{{ tenantId }}"
+        client_id: "{{ clientId }}"
+        secret: "{{ servicePrincipalSecret }}"
+        subscription_id: "{{ subscriptionId }}"
+        location: "{{location}}"
+        state: present
+        resource_group_name: "{{resource_group_name}}"
+        template_link: "{{bigip_template_link}}"
+        parameters:
+          adminPassword:
+            value: "{{BIGIPadminPassword}}"
+          adminUsername:
+            value: "{{BIGIPadminUsername}}"
+          allowUsageAnalytics:
+            value: "{{allowUsageAnalytics}}"
+          bigIpVersion:
+            value: "{{bigIpVersion}}"
+          bigIqLicenseHost:
+            value: "{{bigIqLicenseHost}}"
+          bigIqLicensePassword:
+            value: "{{bigIqLicensePassword}}"
+          bigIqLicensePool:
+            value: "{{bigIqLicensePool}}"
+          bigIqLicenseUsername:
+            value: "{{bigIqLicenseUsername}}"
+          dnsLabel:
+            value: "{{dnsLabel}}"
+          imageName:
+            value: "{{imageName}}"
+          instanceName:
+            value: "{{instanceName}}"
+          instanceType:
+            value: "{{instanceType}}"
+          mgmtSubnetName:
+            value: "{{mgmtSubnetName}}"
+          mgmtIpAddress:
+            value: "{{mgmtIpAddress}}"
+          ntpServer:
+            value: "{{ntpServer}}"
+          restrictedSrcAddress:
+            value: "{{restrictedSrcAddress}}"
+          timeZone:
+            value: "{{timeZone}}"
+          vnetName:
+            value: "{{vnetName}}"
+          vnetResourceGroupName:
+            value: "{{vnetResourceGroupName}}"
+
+    - name: Webhook Notification to Teams for Build
+      delegate_to: localhost
+      uri:
+        body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "**New BIG-IP Environment Created in Resource Group {{resource_group_name}}**", "text": "Click **BIG-IP Button** to be taken to the BIG-IP!", "potentialAction": [{ "@type": "OpenUri", "name": "BIG-IP ", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com" }] }] }
+        body_format: json
+        method: POST
+        status_code: 200
+        url: "{{teams_webhook}}"
+        validate_certs: no

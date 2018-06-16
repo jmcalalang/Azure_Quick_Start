@@ -1,0 +1,71 @@
+# Create or update a Service 3, AS3 Build Simple Application
+
+- name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
+  bigip_wait:
+    timeout: 300
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: no
+  delegate_to: localhost
+
+- name: Add an iAppLX Package for Application Services 3
+  bigip_iapplx_package:
+    package: "{{ role_path }}/files/f5-appsvcs-3.0.0-34.noarch.rpm"
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    state: present
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: no
+  delegate_to: localhost
+
+- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  delegate_to: localhost
+  uri:
+    body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
+    body_format: json
+    method: POST
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    status_code: 200
+    validate_certs: no
+  register: bigip_auth_response
+
+- name: Assign Auth Token to Variable
+  set_fact:
+    bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
+
+- name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
+  azure_rm_securitygroup:
+    resource_group: "{{resource_group_name}}"
+    name: "{{resource_group_name}}-ext-nsg"
+    purge_rules: no
+    rules:
+      - name: 'AllowHTTP'
+        protocol: Tcp
+        source_address_prefix: '{{restrictedSrcAddress}}'
+        destination_port_range: 80
+        access: Allow
+        priority: 100
+        direction: Inbound
+
+- name: Deploy Service 3 (Generic HTTP Service) from AS3
+  delegate_to: localhost
+  uri:
+    body: "{{ lookup('file','service_3.json') | to_json }}"
+    body_format: json
+    headers:
+      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+    method: POST
+    status_code: 200
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    validate_certs: no
+
+- name: Webhook Notification to Teams for Build
+  delegate_to: localhost
+  uri:
+    body: "{\"text\": \"Service 3 was created from AS3!\"}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: no

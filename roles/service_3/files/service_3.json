@@ -1,0 +1,47 @@
+{
+   "class": "AS3",
+   "action": "deploy",
+   "declaration": {
+       "class": "ADC",
+       "schemaVersion": "3.0.0",
+       "id": "service_3_id",
+       "label": "service_3_label",
+       "remark": "service_3_remark",
+       "Service3": {
+           "class": "Tenant",
+           "HTTP_Service": {
+               "class": "Application",
+               "template": "http",
+               "serviceMain": {
+                   "class": "Service_HTTP",
+                   "virtualAddresses": [
+                       "10.128.10.27"
+                   ],
+                   "snat": "auto",
+                   "pool": "Pool1"
+               },
+               "Pool1": {
+                   "class": "Pool",
+                   "monitors": [
+                       "http"
+                   ],
+                   "members": [
+                     {
+                           "servicePort": 80,
+                           "serverAddresses": [
+                             "10.128.20.4"
+                           ]
+                       },
+                       {
+                           "servicePort": 81,
+                           "serverAddresses": [
+                               "10.128.20.4"
+                           ]
+                       }
+
+                   ]
+               }
+           }
+       }
+   }
+}
