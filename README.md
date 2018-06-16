@@ -2,12 +2,12 @@
 
 ## This repository is used in demoing F5 and Azure Deployment Solutions
 
-Each solution is broken out into individual components to be run alone, however they can be stitched together as needed with Ansible Roles, a full demo can be built using the **run_ansible_full_stack.yaml** playbook. This solution is also built around BIG-IQ as a License Manager(LM) server, if you are not using BIG-IQ as a license server you may need to modify this solution.
+Each solution is broken out into individual components to be run alone, however they can be stitched together as needed with Ansible Roles, a full demo can be built using the **run_ansible_full_stack.yaml** playbook. This solution is built around BIG-IQ as a License Manager(LM) server, if you are not using BIG-IQ as a license server you may need to modify this solution.
 
 
 This solution is ideally used in conjunction with the F5 Resource Solutions, there are different projects on-going so please refer to the index for things that can be shown.
 
-We highly recommend using a docker container created from F5 engineer Yossi: `docker run -p 2222:22 -p 10000:8080 -it --rm yossiros/f5-rs-container:latest` this container includes the needed modules for BIG-IP, Azure, AWS and Ansible
+I highly recommend using a docker container created from F5 engineer Yossi: `docker run -p 2222:22 -p 10000:8080 -it --rm yossiros/f5-rs-container:latest` this container includes the needed modules for BIG-IP, Azure, AWS and Ansible
 
 ### Custom Parameters
 
@@ -27,7 +27,7 @@ region for deployment
 
 ### Definition of Solutions:
 
-**run_ansible_application** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Apache and a Default demo page
+**run_ansible_application** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
 
 **run_ansible_azure_net** - This solution will build a Resource Group, Virtual Network and 3 subnets in Azure, the network is based of the IP ranges from the F5 vLab
 
@@ -47,14 +47,14 @@ region for deployment
  - **run_ansible_bigip_single_3_nic**
  - **run_ansible_services_3**
 
-**run_ansible_services_1** - Create or update a Service 1, Imperative Build Simple Application
+**run_ansible_services_1** - Create or update Service 1; Imperative Build Simple Application
 
-**run_ansible_services_2** - Create or update a Service 2, f5.http iapp Build Simple Application
+**run_ansible_services_2** - Create or update Service 2; f5.http iapp Build Simple Application
 
-**run_ansible_services_3** - Create or update a Service 3, AS3 Build Simple Application (HTTP)
+**run_ansible_services_3** - Create or update Service 3; AS3 Build Simple Application (HTTP)
 
-**run_ansible_services_4** - Create or update a Service 4, AS3 Build WAF Application (HTTPs and WAF)
+**run_ansible_services_4** - Create or update Service 4; AS3 Build WAF Application (HTTPs and WAF)
 
-**run_ansible_services_5** - Create or update a Service 5, AS3 Build APM Application (APM Policy)
+**run_ansible_services_5** - Create or update Service 5; AS3 Build APM Application (APM Policy)
 
 **run_ansible_teams_webhook_test** - Test a webhook call for Microsoft Teams
