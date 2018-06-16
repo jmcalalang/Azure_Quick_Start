@@ -13,10 +13,10 @@
     lb_method: ratio-member
     name: service_1_pl
     partition: Common
-    password: "{{ BIGIPadminPassword }}"
+    password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     slow_ramp_time: "120"
-    user: "{{ BIGIPadminUsername }}"
+    user: "{{BIGIPadminUsername}}"
     validate_certs: false
   delegate_to: localhost
   name: "Create a pool"
