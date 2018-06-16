@@ -1,6 +1,6 @@
 # Create or update a Service 1, Imperative Build Simple Application
 ---
-- 
+-
   bigip_wait:
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
@@ -15,7 +15,7 @@
     name: service_1_pl
     partition: Common
     password: "{{ BIGIPadminPassword }}"
-    server: "40.121.59.202"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     slow_ramp_time: "120"
     user: "{{ BIGIPadminUsername }}"
     validate_certs: false
