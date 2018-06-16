@@ -1,93 +1,96 @@
 # Create or update a Service 1, Imperative Build Simple Application
-
-      - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
-        bigip_wait:
-          timeout: 300
-          password: "{{BIGIPadminPassword}}"
-          server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-          user: "{{BIGIPadminUsername}}"
-          validate_certs: no
-        delegate_to: localhost
-
-      - name: Create a pool
-        bigip_pool:
-            lb_method: "ratio-member"
-            name: "service_1_pl"
-            password: "{{ BIGIPadminPassword }}"
-            server: "40.121.59.202"
-            slow_ramp_time: "120"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-            partition: Common
-        delegate_to: localhost
-
-      - name: Create node1
-        bigip_node:
-            host: "10.10.10.10"
-            name: "node-1"
-            password: "{{ BIGIPadminPassword }}"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-        delegate_to: localhost
-
-      - name: Add nodes to pool
-        bigip_pool_member:
-            description: "webserver-1"
-            host: "{{ item.host }}"
-            name: "{{ item.name }}"
-            password: "{{ BIGIPadminPassword }}"
-            pool: "service_1_pl"
-            port: "80"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-        delegate_to: localhost
-        with_items:
-            - host: "10.128.20.4"
-              name: "node-1"
-
-      - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
-        azure_rm_securitygroup:
-          tenant: "{{ tenantId }}"
-          client_id: "{{ clientId }}"
-          secret: "{{ servicePrincipalSecret }}"
-          subscription_id: "{{ subscriptionId }}"
-          resource_group: "{{resource_group_name}}"
-          name: "{{resource_group_name}}-ext-nsg"
-          purge_rules: no
-          rules:
-            - name: 'AllowHTTP'
-              protocol: Tcp
-              source_address_prefix: '{{restrictedSrcAddress}}'
-              destination_port_range: 80
-              access: Allow
-              priority: 100
-              direction: Inbound
-
-      - name: Create a VIP
-        bigip_virtual_server:
-            description: "foo-vip"
-            destination: "10.128.10.21"
-            password: "{{ BIGIPadminPassword }}"
-            name: "service_1_vs"
-            pool: "service_1_pl"
-            port: "80"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            snat: "Automap"
-            user: "{{ BIGIPadminUsername }}"
-            all_profiles:
-                - "http"
-                - "clientssl"
-            validate_certs: no
-        delegate_to: localhost
-
-      - name: Webhook Notification to Teams for Build
-        delegate_to: localhost
-        uri:
-          body: "{\"text\": \"Service 1 was created from individual modules!\"}"
-          body_format: json
-          method: POST
-          status_code: 200
-          url: "{{teams_webhook}}"
-          validate_certs: no
+---
+- 
+  bigip_wait:
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    timeout: 300
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: false
+  delegate_to: localhost
+  name: "Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration"
+-
+  bigip_pool:
+    lb_method: ratio-member
+    name: service_1_pl
+    partition: Common
+    password: "{{ BIGIPadminPassword }}"
+    server: "40.121.59.202"
+    slow_ramp_time: "120"
+    user: "{{ BIGIPadminUsername }}"
+    validate_certs: false
+  delegate_to: localhost
+  name: "Create a pool"
+-
+  bigip_node:
+    host: "10.10.10.10"
+    name: node-1
+    password: "{{ BIGIPadminPassword }}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{ BIGIPadminUsername }}"
+    validate_certs: false
+  delegate_to: localhost
+  name: "Create node1"
+-
+  bigip_pool_member:
+    description: webserver-1
+    host: "{{ item.host }}"
+    name: "{{ item.name }}"
+    password: "{{ BIGIPadminPassword }}"
+    pool: service_1_pl
+    port: "80"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{ BIGIPadminUsername }}"
+    validate_certs: false
+  delegate_to: localhost
+  name: "Add nodes to pool"
+  with_items:
+    -
+      host: "10.128.20.4"
+      name: node-1
+-
+  azure_rm_securitygroup:
+    client_id: "{{ clientId }}"
+    name: "{{resource_group_name}}-ext-nsg"
+    purge_rules: false
+    resource_group: "{{resource_group_name}}"
+    rules:
+      -
+        access: Allow
+        destination_port_range: 80
+        direction: Inbound
+        name: AllowHTTP
+        priority: 100
+        protocol: Tcp
+        source_address_prefix: "{{restrictedSrcAddress}}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    tenant: "{{ tenantId }}"
+  name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
+-
+  bigip_virtual_server:
+    all_profiles:
+      - http
+      - clientssl
+    description: foo-vip
+    destination: "10.128.10.21"
+    name: service_1_vs
+    password: "{{ BIGIPadminPassword }}"
+    pool: service_1_pl
+    port: "80"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    snat: Automap
+    user: "{{ BIGIPadminUsername }}"
+    validate_certs: false
+  delegate_to: localhost
+  name: "Create a VIP"
+-
+  delegate_to: localhost
+  name: "Webhook Notification to Teams for Build"
+  uri:
+    body: "{\"text\": \"Service 1 was created from individual modules!\"}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: false
