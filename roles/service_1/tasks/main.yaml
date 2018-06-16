@@ -46,6 +46,24 @@
             - host: "10.128.20.4"
               name: "node-1"
 
+      - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
+        azure_rm_securitygroup:
+          tenant: "{{ tenantId }}"
+          client_id: "{{ clientId }}"
+          secret: "{{ servicePrincipalSecret }}"
+          subscription_id: "{{ subscriptionId }}"
+          resource_group: "{{resource_group_name}}"
+          name: "{{resource_group_name}}-ext-nsg"
+          purge_rules: no
+          rules:
+            - name: 'AllowHTTP'
+              protocol: Tcp
+              source_address_prefix: '{{restrictedSrcAddress}}'
+              destination_port_range: 80
+              access: Allow
+              priority: 100
+              direction: Inbound
+
       - name: Create a VIP
         bigip_virtual_server:
             description: "foo-vip"
@@ -66,7 +84,7 @@
       - name: Webhook Notification to Teams for Build
         delegate_to: localhost
         uri:
-          body: "{\"text\": \"Service 1 was created from AS3!\"}"
+          body: "{\"text\": \"Service 1 was created from individual modules!\"}"
           body_format: json
           method: POST
           status_code: 200
