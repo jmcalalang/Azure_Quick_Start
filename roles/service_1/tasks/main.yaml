@@ -9,6 +9,18 @@
           validate_certs: no
         delegate_to: localhost
 
+      - name: Create pool test
+        bigip_pool:
+          server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+          user: "{{ BIGIPadminUsername }}"
+          password: "{{ BIGIPadminPassword }}"
+          state: present
+          name: my-pool
+          partition: Common
+          lb_method: least-connections-member
+          slow_ramp_time: 120
+        delegate_to: localhost
+
       - name: Create a pool
         bigip_pool:
             lb_method: "ratio-member"
