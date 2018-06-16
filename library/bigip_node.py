@@ -87,19 +87,79 @@ options:
     aliases:
       - hostname
     version_added: 2.5
+  fqdn_address_type:
+    description:
+      - Specifies whether the FQDN of the node resolves to an IPv4 or IPv6 address.
+      - When creating a new node, if this parameter is not specified and C(fqdn) is
+        specified, this parameter will default to C(ipv4).
+      - This parameter cannot be changed after it has been set.
+    choices:
+      - ipv4
+      - ipv6
+      - all
+    version_added: 2.6
+  fqdn_auto_populate:
+    description:
+      - Specifies whether the system automatically creates ephemeral nodes using
+        the IP addresses returned by the resolution of a DNS query for a node defined
+        by an FQDN.
+      - When C(yes), the system generates an ephemeral node for each IP address
+        returned in response to a DNS query for the FQDN of the node. Additionally,
+        when a DNS response indicates the IP address of an ephemeral node no longer
+        exists, the system deletes the ephemeral node.
+      - When C(no), the system resolves a DNS query for the FQDN of the node with the
+        single IP address associated with the FQDN.
+      - When creating a new node, if this parameter is not specified and C(fqdn) is
+        specified, this parameter will default to C(yes).
+      - This parameter cannot be changed after it has been set.
+    type: bool
+    version_added: 2.6
+  fqdn_up_interval:
+    description:
+      - Specifies the interval in which a query occurs, when the DNS server is up.
+        The associated monitor attempts to probe three times, and marks the server
+        down if it there is no response within the span of three times the interval
+        value, in seconds.
+      - This parameter accepts a value of C(ttl) to query based off of the TTL of
+        the FQDN. The default TTL interval is akin to specifying C(3600).
+      - When creating a new node, if this parameter is not specified and C(fqdn) is
+        specified, this parameter will default to C(3600).
+    version_added: 2.6
+  fqdn_down_interval:
+    description:
+      - Specifies the interval in which a query occurs, when the DNS server is down.
+        The associated monitor continues polling as long as the DNS server is down.
+      - When creating a new node, if this parameter is not specified and C(fqdn) is
+        specified, this parameter will default to C(5).
+    version_added: 2.6
   description:
     description:
       - Specifies descriptive text that identifies the node.
+  connection_limit:
+    description:
+      - Node connection limit. Setting this to 0 disables the limit.
+    version_added: 2.7
+  rate_limit:
+    description:
+      - Node rate limit (connections-per-second). Setting this to 0 disables the limit.
+    version_added: 2.7
+  ratio:
+    description:
+      - Node ratio weight. Valid values range from 1 through 100.
+      - When creating a new node, if this parameter is not specified, the default of
+        C(1) will be used.
+    version_added: 2.7
+  dynamic_ratio:
+    description:
+      - The dynamic ratio number for the node. Used for dynamic ratio load balancing.
+      - When creating a new node, if this parameter is not specified, the default of
+        C(1) will be used.
+    version_added: 2.7
   partition:
     description:
       - Device partition to manage resources on.
     default: Common
     version_added: 2.5
-notes:
-  - Requires the netaddr Python package on the host. This is as easy as
-    C(pip install netaddr).
-requirements:
-  - netaddr
 extends_documentation_fragment: f5
 author:
   - Tim Rupp (@caphrim007)
@@ -217,6 +277,8 @@ import time
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import env_fallback
+from ansible.module_utils.parsing.convert_bool import BOOLEANS_FALSE
+from ansible.module_utils.parsing.convert_bool import BOOLEANS_TRUE
 
 try:
     from library.module_utils.network.f5.bigip import HAS_F5SDK
@@ -228,6 +290,7 @@ try:
     from library.module_utils.network.f5.common import f5_argument_spec
     try:
         from library.module_utils.network.f5.common import iControlUnexpectedHTTPError
+        from f5.sdk_exception import LazyAttributesRequired
     except ImportError:
         HAS_F5SDK = False
 except ImportError:
@@ -240,23 +303,42 @@ except ImportError:
     from ansible.module_utils.network.f5.common import f5_argument_spec
     try:
         from ansible.module_utils.network.f5.common import iControlUnexpectedHTTPError
+        from f5.sdk_exception import LazyAttributesRequired
     except ImportError:
         HAS_F5SDK = False
-
-try:
-    import netaddr
-    HAS_NETADDR = True
-except ImportError:
-    HAS_NETADDR = False
 
 
 class Parameters(AnsibleF5Parameters):
     api_map = {
-        'monitor': 'monitors'
+        'monitor': 'monitors',
+        'connectionLimit': 'connection_limit',
+        'rateLimit': 'rate_limit'
     }
 
     api_attributes = [
-        'monitor', 'description', 'address', 'fqdn',
+        # Leave the ``monitor`` attribute commented out
+        #
+        # This attribute is commented out to prevent it from trying to be
+        # sent to the API during a create or update request. This is because
+        # the field is **broken** and **will not work** if you send some
+        # formats of the monitor to the API.
+        #
+        # Specifically, the m_of_n types will not work because they include
+        # the brace ( ``{`` ) character and the API considers this character
+        # to be invalid.
+        #
+        # Monitors are handled in a special case within the ``update_one_device``
+        # and ``create_one_device`` methods. Refer to them if you need to know
+        # what that special case is.
+        #
+        # 'monitor',
+
+        'description',
+        'address',
+        'fqdn',
+        'ratio',
+        'connectionLimit',
+        'rateLimit',
 
         # Used for changing state
         #
@@ -271,11 +353,37 @@ class Parameters(AnsibleF5Parameters):
     ]
 
     returnables = [
-        'monitor_type', 'quorum', 'monitors', 'description', 'fqdn', 'session', 'state'
+        'monitor_type',
+        'quorum',
+        'monitors',
+        'description',
+        'fqdn',
+        'session',
+        'state',
+        'fqdn_auto_populate',
+        'fqdn_address_type',
+        'fqdn_up_interval',
+        'fqdn_down_interval',
+        'fqdn_name',
+        'connection_limit',
+        'ratio',
+        'rate_limit'
     ]
 
     updatables = [
-        'monitor_type', 'quorum', 'monitors', 'description', 'state'
+        'monitor_type',
+        'quorum',
+        'monitors',
+        'description',
+        'state',
+        'fqdn_up_interval',
+        'fqdn_down_interval',
+        'tmName',
+        'fqdn_auto_populate',
+        'fqdn_address_type',
+        'connection_limit',
+        'ratio',
+        'rate_limit'
     ]
 
     def to_return(self):
@@ -311,18 +419,45 @@ class Parameters(AnsibleF5Parameters):
         return result
 
     @property
+    def rate_limit(self):
+        if self._values['rate_limit'] is None:
+            return None
+        if self._values['rate_limit'] == 'disabled':
+            return 0
+        return int(self._values['rate_limit'])
+
+
+class Changes(Parameters):
+    pass
+
+
+class UsableChanges(Changes):
+    @property
+    def fqdn(self):
+        result = dict()
+        if self._values['fqdn_up_interval'] is not None:
+            result['interval'] = self._values['fqdn_up_interval']
+        if self._values['fqdn_down_interval'] is not None:
+            result['downInterval'] = self._values['fqdn_down_interval']
+        if self._values['fqdn_auto_populate'] is not None:
+            result['autopopulate'] = self._values['fqdn_auto_populate']
+        if self._values['fqdn_name'] is not None:
+            result['tmName'] = self._values['fqdn_name']
+        if not result:
+            return None
+        return result
+
+
+class ReportableChanges(Changes):
+    pass
+
+
+class ModuleParameters(Parameters):
+    @property
     def quorum(self):
-        if self.kind == 'tm:ltm:pool:poolstate':
-            if self._values['monitors'] is None:
-                return None
-            pattern = r'min\s+(?P<quorum>\d+)\s+of'
-            matches = re.search(pattern, self._values['monitors'])
-            if matches:
-                quorum = matches.group('quorum')
-            else:
-                quorum = None
-        else:
-            quorum = self._values['quorum']
+        if self._values['quorum'] is None:
+            return None
+        quorum = self._values['quorum']
         try:
             if quorum is None:
                 return None
@@ -334,35 +469,111 @@ class Parameters(AnsibleF5Parameters):
 
     @property
     def monitor_type(self):
-        if self.kind == 'tm:ltm:node:nodestate':
-            if self._values['monitors'] is None:
-                return None
-            pattern = r'min\s+\d+\s+of'
-            matches = re.search(pattern, self._values['monitors'])
-            if matches:
-                return 'm_of_n'
-            else:
-                return 'and_list'
-        else:
-            if self._values['monitor_type'] is None:
-                return None
-            return self._values['monitor_type']
+        if self._values['monitor_type'] is None:
+            return None
+        return self._values['monitor_type']
+
+    @property
+    def fqdn_up_interval(self):
+        if self._values['fqdn_up_interval'] is None:
+            return None
+        return str(self._values['fqdn_up_interval'])
+
+    @property
+    def fqdn_down_interval(self):
+        if self._values['fqdn_down_interval'] is None:
+            return None
+        return str(self._values['fqdn_down_interval'])
+
+    @property
+    def fqdn_auto_populate(self):
+        auto_populate = self._values.get('fqdn_auto_populate', None)
+        if auto_populate in BOOLEANS_TRUE:
+            return 'enabled'
+        elif auto_populate in BOOLEANS_FALSE:
+            return 'disabled'
+
+    @property
+    def fqdn_name(self):
+        return self._values.get('fqdn', None)
 
     @property
     def fqdn(self):
         if self._values['fqdn'] is None:
             return None
         result = dict(
-            addressFamily='ipv4',
-            autopopulate='disabled',
-            downInterval=3600,
-            tmName=self._values['fqdn']
+            addressFamily=self._values.get('fqdn_address_type', None),
+            downInterval=self._values.get('fqdn_down_interval', None),
+            interval=self._values.get('fqdn_up_interval', None),
+            autopopulate=None,
+            tmName=self._values.get('fqdn', None)
         )
+        auto_populate = self._values.get('fqdn_auto_populate', None)
+        if auto_populate in BOOLEANS_TRUE:
+            result['autopopulate'] = 'enabled'
+        elif auto_populate in BOOLEANS_FALSE:
+            result['autopopulate'] = 'disabled'
         return result
 
 
-class Changes(Parameters):
-    pass
+class ApiParameters(Parameters):
+    @property
+    def quorum(self):
+        if self._values['monitors'] is None:
+            return None
+        pattern = r'min\s+(?P<quorum>\d+)\s+of'
+        matches = re.search(pattern, self._values['monitors'])
+        if matches:
+            quorum = matches.group('quorum')
+        else:
+            quorum = None
+        try:
+            if quorum is None:
+                return None
+            return int(quorum)
+        except ValueError:
+            raise F5ModuleError(
+                "The specified 'quorum' must be an integer."
+            )
+
+    @property
+    def monitor_type(self):
+        if self._values['monitors'] is None:
+            return None
+        pattern = r'min\s+\d+\s+of'
+        matches = re.search(pattern, self._values['monitors'])
+        if matches:
+            return 'm_of_n'
+        else:
+            return 'and_list'
+
+    @property
+    def fqdn_up_interval(self):
+        if self._values['fqdn'] is None:
+            return None
+        if 'interval' in self._values['fqdn']:
+            return str(self._values['fqdn']['interval'])
+
+    @property
+    def fqdn_down_interval(self):
+        if self._values['fqdn'] is None:
+            return None
+        if 'downInterval' in self._values['fqdn']:
+            return str(self._values['fqdn']['downInterval'])
+
+    @property
+    def fqdn_address_type(self):
+        if self._values['fqdn'] is None:
+            return None
+        if 'addressFamily' in self._values['fqdn']:
+            return str(self._values['fqdn']['addressFamily'])
+
+    @property
+    def fqdn_auto_populate(self):
+        if self._values['fqdn'] is None:
+            return None
+        if 'autopopulate' in self._values['fqdn']:
+            return str(self._values['fqdn']['autopopulate'])
 
 
 class Difference(object):
@@ -390,9 +601,13 @@ class Difference(object):
     def monitor_type(self):
         if self.want.monitor_type is None:
             self.want.update(dict(monitor_type=self.have.monitor_type))
+
         if self.want.quorum is None:
             self.want.update(dict(quorum=self.have.quorum))
+
         if self.want.monitor_type == 'm_of_n' and self.want.quorum is None:
+            if self.want.quorum is None and self.have.quorum is None:
+                return None
             raise F5ModuleError(
                 "Quorum value must be specified with monitor_type 'm_of_n'."
             )
@@ -454,14 +669,36 @@ class Difference(object):
                 )
         return result
 
+    @property
+    def fqdn_auto_populate(self):
+        if self.want.fqdn_auto_populate is None:
+            return None
+        if self.want.fqdn_auto_populate != self.have.fqdn_auto_populate:
+            raise F5ModuleError(
+                "The 'fqdn_auto_populate' parameter cannot be changed."
+            )
+
+    @property
+    def fqdn_address_type(self):
+        if self.want.fqdn_address_type is None:
+            return None
+        if self.want.fqdn_address_type != self.have.fqdn_address_type:
+            raise F5ModuleError(
+                "The 'fqdn_address_type' parameter cannot be changed."
+            )
+
+    @property
+    def fqdn(self):
+        return None
+
 
 class ModuleManager(object):
     def __init__(self, *args, **kwargs):
         self.module = kwargs.get('module', None)
         self.client = kwargs.get('client', None)
         self.have = None
-        self.want = Parameters(params=self.module.params)
-        self.changes = Changes()
+        self.want = ModuleParameters(params=self.module.params)
+        self.changes = UsableChanges()
 
     def _set_changed_options(self):
         changed = {}
@@ -469,7 +706,7 @@ class ModuleManager(object):
             if getattr(self.want, key) is not None:
                 changed[key] = getattr(self.want, key)
         if changed:
-            self.changes = Changes(params=changed)
+            self.changes = UsableChanges(params=changed)
 
     def _update_changed_options(self):
         diff = Difference(self.want, self.have)
@@ -485,7 +722,7 @@ class ModuleManager(object):
                 else:
                     changed[k] = change
         if changed:
-            self.changes = Changes(params=changed)
+            self.changes = UsableChanges(params=changed)
             return True
         return False
 
@@ -573,9 +810,24 @@ class ModuleManager(object):
     def create(self):
         self._check_required_creation_vars()
         self._munge_creation_state_for_device()
+
+        if self.want.fqdn_auto_populate is None:
+            self.want.update({'fqdn_auto_populate': True})
+        if self.want.fqdn_address_type is None:
+            self.want.update({'fqdn_address_type': 'ipv4'})
+        if self.want.fqdn_up_interval is None:
+            self.want.update({'fqdn_up_interval': 3600})
+        if self.want.fqdn_down_interval is None:
+            self.want.update({'fqdn_down_interval': 5})
+        if self.want.ratio is None:
+            self.want.update({'ratio': 1})
+        if self.want.dynamic_ratio is None:
+            self.want.update({'dynamic_ratio': 1})
+
         self._set_changed_options()
         if self.module.check_mode:
             return True
+
         self.create_on_device()
         if not self.exists():
             raise F5ModuleError("Failed to create the node")
@@ -597,6 +849,7 @@ class ModuleManager(object):
             return False
         if self.module.check_mode:
             return True
+
         self.update_on_device()
         if self.want.state == 'offline':
             self.update_node_offline_on_device()
@@ -621,7 +874,7 @@ class ModuleManager(object):
             partition=self.want.partition
         )
         result = resource.attrs
-        return Parameters(params=result)
+        return ApiParameters(params=result)
 
     def exists(self):
         result = self.client.api.tm.ltm.nodes.node.exists(
@@ -643,11 +896,14 @@ class ModuleManager(object):
 
     def update_on_device(self):
         params = self.changes.api_params()
-        result = self.client.api.tm.ltm.nodes.node.load(
+        resource = self.client.api.tm.ltm.nodes.node.load(
             name=self.want.name,
             partition=self.want.partition
         )
-        result.modify(**params)
+        if params:
+            resource.modify(**params)
+        if self.want.monitors:
+            self.update_monitors_on_device()
 
     def create_on_device(self):
         params = self.want.api_params()
@@ -656,6 +912,8 @@ class ModuleManager(object):
             partition=self.want.partition,
             **params
         )
+        if self.want.monitors:
+            self.update_monitors_on_device()
         self._wait_for_fqdn_checks(resource)
 
     def _wait_for_fqdn_checks(self, resource):
@@ -673,6 +931,36 @@ class ModuleManager(object):
         )
         if result:
             result.delete()
+
+    def update_monitors_on_device(self):
+        """Updates the monitors string
+
+        There is a long-standing bug in where the monitor value
+        is a string that includes braces. These braces cause the REST API to panic and
+        fail to update or create any resources that have an "at_least" or "require"
+        set of availability_requirements.
+
+        This method exists to do a tmsh command to cause the update to take place on
+        the device.
+
+        Preferably, this method can be removed and the bug be fixed. The API should
+        be working, obviously, but the more concerning issue is if tmsh commands change
+        over time, breaking this method.
+        """
+        command = 'tmsh modify ltm node /{0}/{1} monitor {2}'.format(
+            self.want.partition, self.want.name, self.want.monitors
+        )
+        output = self.client.api.tm.util.bash.exec_cmd(
+            'run',
+            utilCmdArgs='-c "{0}"'.format(command)
+        )
+        try:
+            if hasattr(output, 'commandResult'):
+                if len(output.commandResult.strip()) > 0:
+                    raise F5ModuleError(output.commandResult)
+        except (AttributeError, NameError, LazyAttributesRequired):
+            pass
+        return True
 
 
 class ArgumentSpec(object):
@@ -701,7 +989,17 @@ class ArgumentSpec(object):
             partition=dict(
                 default='Common',
                 fallback=(env_fallback, ['F5_PARTITION'])
-            )
+            ),
+            fqdn_address_type=dict(
+                choices=['ipv4', 'ipv6', 'all']
+            ),
+            fqdn_auto_populate=dict(type='bool'),
+            fqdn_up_interval=dict(),
+            fqdn_down_interval=dict(type='int'),
+            connection_limit=dict(type='int'),
+            rate_limit=dict(type='int'),
+            ratio=dict(type='int'),
+            dynamic_ratio=dict(type='int')
         )
         self.argument_spec = {}
         self.argument_spec.update(f5_argument_spec)
@@ -717,8 +1015,6 @@ def main():
     )
     if not HAS_F5SDK:
         module.fail_json(msg="The python f5-sdk module is required")
-    if not HAS_NETADDR:
-        module.fail_json(msg="The python netaddr module is required")
 
     try:
         client = F5Client(**module.params)

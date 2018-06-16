@@ -82,6 +82,20 @@ options:
         is a BIG-IP; not an SSG.
     type: bool
     default: no
+  state:
+    description:
+      - The state of the resource on the system.
+      - When C(present), guarantees that the resource exists with the provided attributes.
+      - When C(absent), removes the resource from the system.
+    default: present
+    choices:
+      - absent
+      - present
+  wait:
+    description:
+      - If the module should wait for the application to be created, deleted or updated.
+    type: bool
+    default: yes
 extends_documentation_fragment: f5
 notes:
   - This module does not support updating of your application (whether deployed or not).
@@ -145,6 +159,7 @@ inbound_virtual_port:
 servers:
   description: List of servers, and their ports, that make up the application.
   type: complex
+  returned: changed
   contains:
     address:
       description: The IP address of the server.
@@ -171,6 +186,7 @@ try:
     from library.module_utils.network.f5.common import f5_argument_spec
     from library.module_utils.network.f5.common import exit_json
     from library.module_utils.network.f5.common import fail_json
+    from library.module_utils.network.f5.common import is_valid_ip
 except ImportError:
     from ansible.module_utils.network.f5.bigiq import F5RestClient
     from ansible.module_utils.network.f5.common import F5ModuleError
@@ -178,12 +194,7 @@ except ImportError:
     from ansible.module_utils.network.f5.common import f5_argument_spec
     from ansible.module_utils.network.f5.common import exit_json
     from ansible.module_utils.network.f5.common import fail_json
-
-try:
-    import netaddr
-    HAS_NETADDR = True
-except ImportError:
-    HAS_NETADDR = False
+    from ansible.module_utils.network.f5.common import is_valid_ip
 
 
 class Parameters(AnsibleF5Parameters):
@@ -260,11 +271,9 @@ class ModuleParameters(Parameters):
 
     @property
     def default_device_reference(self):
-        try:
-            # An IP address was specified
-            netaddr.IPAddress(self.service_environment)
+        if is_valid_ip(self.service_environment):
             filter = "address+eq+'{0}'".format(self.service_environment)
-        except netaddr.core.AddrFormatError:
+        else:
             # Assume a hostname was specified
             filter = "hostname+eq+'{0}'".format(self.service_environment)
 
@@ -348,7 +357,7 @@ class UsableChanges(Changes):
                     name='virtual',
                     destinationAddress=self.inbound_virtual['address'],
                     mask=self.inbound_virtual['netmask'],
-                    destinationPort=self.inbound_virtual['port']
+                    destinationPort=self.inbound_virtual.get('port', 80)
                 ),
                 subcollectionResources=self.profiles
             )
@@ -391,7 +400,7 @@ class UsableChanges(Changes):
         for x in self.servers:
             member = dict(
                 parameters=dict(
-                    port=x['port'],
+                    port=x.get('port', 80),
                     nodeReference=dict(
                         link='#/resources/ltm:node:9e76a6323321/{0}'.format(x['address']),
                         fullPath='# {0}'.format(x['address'])
@@ -562,9 +571,10 @@ class ModuleManager(object):
         if self.module.check_mode:
             return True
         self_link = self.remove_from_device()
-        self.wait_for_apply_template_task(self_link)
-        if self.exists():
-            raise F5ModuleError("Failed to delete the resource.")
+        if self.want.wait:
+            self.wait_for_apply_template_task(self_link)
+            if self.exists():
+                raise F5ModuleError("Failed to delete the resource.")
         return True
 
     def has_no_service_environment(self):
@@ -595,11 +605,12 @@ class ModuleManager(object):
         if self.module.check_mode:
             return True
         self_link = self.create_on_device()
-        self.wait_for_apply_template_task(self_link)
-        if not self.exists():
-            raise F5ModuleError(
-                "Failed to deploy application."
-            )
+        if self.want.wait:
+            self.wait_for_apply_template_task(self_link)
+            if not self.exists():
+                raise F5ModuleError(
+                    "Failed to deploy application."
+                )
         return True
 
     def create_on_device(self):
@@ -700,6 +711,7 @@ class ArgumentSpec(object):
                 default='present',
                 choices=['present', 'absent']
             ),
+            wait=dict(type='bool', default='yes')
         )
         self.argument_spec = {}
         self.argument_spec.update(f5_argument_spec)
@@ -713,8 +725,6 @@ def main():
         argument_spec=spec.argument_spec,
         supports_check_mode=spec.supports_check_mode
     )
-    if not HAS_NETADDR:
-        module.fail_json(msg="The python netaddr module is required")
 
     try:
         client = F5RestClient(module=module)

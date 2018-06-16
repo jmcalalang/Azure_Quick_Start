@@ -30,8 +30,9 @@ options:
   peer_hostname:
     description:
       - The hostname that you want to associate with the device. This value will
-        be used to easily distinguish this device in BIG-IP configuration. If not
-        specified, the value of C(peer_server) will be used as a default.
+        be used to easily distinguish this device in BIG-IP configuration.
+      - When trusting a new device, if this parameter is not specified, the value
+        of C(peer_server) will be used as a default.
   peer_user:
     description:
       - The API username of the remote peer device that you are trusting. Note
@@ -68,8 +69,6 @@ options:
     choices:
       - absent
       - present
-requirements:
-  - netaddr
 extends_documentation_fragment: f5
 author:
   - Tim Rupp (@caphrim007)
@@ -114,6 +113,7 @@ try:
     from library.module_utils.network.f5.common import AnsibleF5Parameters
     from library.module_utils.network.f5.common import cleanup_tokens
     from library.module_utils.network.f5.common import f5_argument_spec
+    from library.module_utils.network.f5.common import is_valid_ip
     try:
         from library.module_utils.network.f5.common import iControlUnexpectedHTTPError
     except ImportError:
@@ -125,16 +125,11 @@ except ImportError:
     from ansible.module_utils.network.f5.common import AnsibleF5Parameters
     from ansible.module_utils.network.f5.common import cleanup_tokens
     from ansible.module_utils.network.f5.common import f5_argument_spec
+    from ansible.module_utils.network.f5.common import is_valid_ip
     try:
         from ansible.module_utils.network.f5.common import iControlUnexpectedHTTPError
     except ImportError:
         HAS_F5SDK = False
-
-try:
-    import netaddr
-    HAS_NETADDR = True
-except ImportError:
-    HAS_NETADDR = False
 
 
 class Parameters(AnsibleF5Parameters):
@@ -170,13 +165,11 @@ class Parameters(AnsibleF5Parameters):
     def peer_server(self):
         if self._values['peer_server'] is None:
             return None
-        try:
-            result = str(netaddr.IPAddress(self._values['peer_server']))
-            return result
-        except netaddr.core.AddrFormatError:
-            raise F5ModuleError(
-                "The provided 'peer_server' parameter is not an IP address."
-            )
+        if is_valid_ip(self._values['peer_server']):
+            return self._values['peer_server']
+        raise F5ModuleError(
+            "The provided 'peer_server' parameter is not an IP address."
+        )
 
     @property
     def peer_hostname(self):
@@ -227,6 +220,22 @@ class ModuleManager(object):
         result.update(dict(changed=changed))
         return result
 
+    def provided_password(self):
+        if self.want.password:
+            return self.password
+        if self.want.provider.get('password', None):
+            return self.want.provider.get('password')
+        if self.module.params.get('password', None):
+            return self.module.params.get('password')
+
+    def provided_username(self):
+        if self.want.username:
+            return self.username
+        if self.want.provider.get('user', None):
+            return self.provider.get('user')
+        if self.module.params.get('user', None):
+            return self.module.params.get('user')
+
     def present(self):
         if self.exists():
             return False
@@ -236,11 +245,11 @@ class ModuleManager(object):
     def create(self):
         self._set_changed_options()
         if self.want.peer_user is None:
-            self.want.update({'peer_user': self.want.user})
+            self.want.update({'peer_user': self.provided_username()})
         if self.want.peer_password is None:
-            self.want.update({'peer_password': self.want.password})
+            self.want.update({'peer_password': self.provided_password()})
         if self.want.peer_hostname is None:
-            self.want.update({'peer_hostname': self.want.server})
+            self.want.update({'peer_hostname': self.want.peer_server})
         if self.module.check_mode:
             return True
 
@@ -255,6 +264,8 @@ class ModuleManager(object):
     def remove(self):
         if self.module.check_mode:
             return True
+        if self.want.peer_hostname is None:
+            self.want.update({'peer_hostname': self.want.peer_server})
         self.remove_from_device()
         if self.exists():
             raise F5ModuleError("Failed to remove the trusted peer.")
@@ -279,7 +290,7 @@ class ModuleManager(object):
         )
 
     def remove_from_device(self):
-        result = self.client.api.tm.cm.remove_from_trust.exec_cmd(
+        self.client.api.tm.cm.remove_from_trust.exec_cmd(
             'run', deviceName=self.want.peer_hostname, name=self.want.peer_hostname
         )
 
@@ -315,8 +326,6 @@ def main():
     )
     if not HAS_F5SDK:
         module.fail_json(msg="The python f5-sdk module is required")
-    if not HAS_NETADDR:
-        module.fail_json(msg="The python netaddr module is required")
 
     try:
         client = F5Client(**module.params)

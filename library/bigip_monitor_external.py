@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright: (c) 2017, F5 Networks Inc.
+# Copyright: (c) 2018, F5 Networks Inc.
 # GNU General Public License v3.0 (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -14,41 +14,48 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = r'''
 ---
-module: bigip_gtm_monitor_firepass
-short_description: Manages F5 BIG-IP GTM FirePass monitors
+module: bigip_monitor_external
+short_description: Manages external LTM monitors on a BIG-IP
 description:
-  - Manages F5 BIG-IP GTM FirePass monitors.
+  - Manages external LTM monitors on a BIG-IP.
 version_added: 2.6
 options:
   name:
     description:
-      - Monitor name.
+      - Specifies the name of the monitor.
     required: True
   parent:
     description:
       - The parent template of this monitor template. Once this value has
-        been set, it cannot be changed. By default, this value is the C(tcp)
+        been set, it cannot be changed. By default, this value is the C(http)
         parent on the C(Common) partition.
-    default: /Common/firepass_gtm
+    default: "/Common/external"
+  arguments:
+    description:
+      - Specifies any command-line arguments that the script requires.
   ip:
     description:
       - IP address part of the IP/port definition. If this parameter is not
         provided when creating a new monitor, then the default value will be
         '*'.
-      - If this value is an IP address, then a C(port) number must be specified.
   port:
     description:
       - Port address part of the IP/port definition. If this parameter is not
         provided when creating a new monitor, then the default value will be
         '*'. Note that if specifying an IP address, a value between 1 and 65535
         must be specified.
+  external_program:
+    description:
+      - Specifies the name of the file for the monitor to use. In order to reference
+        a file, you must first import it using options on the System > File Management > External
+        Monitor Program File List > Import screen. The BIG-IP system automatically
+        places the file in the proper location on the file system.
   interval:
     description:
       - The interval specifying how frequently the monitor instance of this
-        template will run.
-      - If this parameter is not provided when creating a new monitor, then
-        the default value will be 30.
-      - This value B(must) be less than the C(timeout) value.
+        template will run. If this parameter is not provided when creating
+        a new monitor, then the default value will be 5. This value B(must)
+        be less than the C(timeout) value.
   timeout:
     description:
       - The number of seconds in which the node or service must respond to
@@ -56,9 +63,12 @@ options:
         period, it is considered up. If the target does not respond within
         the set time period, it is considered down. You can change this
         number to any number you want, however, it should be 3 times the
-        interval number of seconds plus 1 second.
-      - If this parameter is not provided when creating a new monitor, then
-        the default value will be 90.
+        interval number of seconds plus 1 second. If this parameter is not
+        provided when creating a new monitor, then the default value will be 16.
+  variables:
+    description:
+      - Specifies any variables that the script requires.
+      - Note that double quotes in values will be suppressed.
   partition:
     description:
       - Device partition to manage resources on.
@@ -71,96 +81,46 @@ options:
     choices:
       - present
       - absent
-  probe_timeout:
-    description:
-      - Specifies the number of seconds after which the system times out the probe request
-        to the system.
-      - When creating a new monitor, if this parameter is not provided, then the default
-        value will be C(5).
-  ignore_down_response:
-    description:
-      - Specifies that the monitor allows more than one probe attempt per interval.
-      - When C(yes), specifies that the monitor ignores down responses for the duration of
-        the monitor timeout. Once the monitor timeout is reached without the system receiving
-        an up response, the system marks the object down.
-      - When C(no), specifies that the monitor immediately marks an object down when it
-        receives a down response.
-      - When creating a new monitor, if this parameter is not provided, then the default
-        value will be C(no).
-    type: bool
-  target_username:
-    description:
-      - Specifies the user name, if the monitored target requires authentication.
-  target_password:
-    description:
-      - Specifies the password, if the monitored target requires authentication.
-  update_password:
-    description:
-      - C(always) will update passwords if the C(target_password) is specified.
-      - C(on_create) will only set the password for newly created monitors.
-    default: always
-    choices:
-      - always
-      - on_create
-  cipher_list:
-    description:
-      - Specifies the list of ciphers for this monitor.
-      - The items in the cipher list are separated with the colon C(:) symbol.
-      - When creating a new monitor, if this parameter is not specified, the default
-        list is C(HIGH:!ADH).
-  max_load_average:
-    description:
-      - Specifies the number that the monitor uses to mark the Secure Access Manager
-        system up or down.
-      - The system compares the Max Load Average setting against a one-minute average
-        of the Secure Access Manager system load.
-      - When the Secure Access Manager system-load average falls within the specified
-        Max Load Average, the monitor marks the Secure Access Manager system up.
-      - When the average exceeds the setting, the monitor marks the system down.
-      - When creating a new monitor, if this parameter is not specified, the default
-        is C(12).
-  concurrency_limit:
-    description:
-      - Specifies the maximum percentage of licensed connections currently in use under
-        which the monitor marks the Secure Access Manager system up.
-      - As an example, a setting of 95 percent means that the monitor marks the Secure
-        Access Manager system up until 95 percent of licensed connections are in use.
-      - When the number of in-use licensed connections exceeds 95 percent, the monitor
-        marks the Secure Access Manager system down.
-      - When creating a new monitor, if this parameter is not specified, the default is C(95).
 extends_documentation_fragment: f5
 author:
   - Tim Rupp (@caphrim007)
 '''
 
 EXAMPLES = r'''
-- name: Create a GTM FirePass monitor
-  bigip_gtm_monitor_firepass:
-    name: my_monitor
-    ip: 1.1.1.1
-    port: 80
+- name: Create an external monitor
+  bigip_monitor_external:
+    name: foo
     password: secret
     server: lb.mydomain.com
     state: present
     user: admin
   delegate_to: localhost
 
-- name: Remove FirePass Monitor
-  bigip_gtm_monitor_firepass:
-    name: my_monitor
-    state: absent
-    server: lb.mydomain.com
-    user: admin
+- name: Create an external monitor with variables
+  bigip_monitor_external:
+    name: foo
+    timeout: 10
+    variables:
+      var1: foo
+      var2: bar
     password: secret
+    server: lb.mydomain.com
+    state: present
+    user: admin
   delegate_to: localhost
 
-- name: Add FirePass monitor for all addresses, port 514
-  bigip_gtm_monitor_firepass:
-    name: my_monitor
-    server: lb.mydomain.com
-    user: admin
-    port: 514
+- name: Add a variable to an existing set
+  bigip_monitor_external:
+    name: foo
+    timeout: 10
+    variables:
+      var1: foo
+      var2: bar
+      cat: dog
     password: secret
+    server: lb.mydomain.com
+    state: present
+    user: admin
   delegate_to: localhost
 '''
 
@@ -169,17 +129,12 @@ parent:
   description: New parent template of the monitor.
   returned: changed
   type: string
-  sample: firepass_gtm
+  sample: external
 ip:
   description: The new IP of IP/port definition.
   returned: changed
   type: string
   sample: 10.12.13.14
-port:
-  description: The new port the monitor checks the resource on.
-  returned: changed
-  type: string
-  sample: 8080
 interval:
   description: The new interval in which to run the monitor check.
   returned: changed
@@ -190,35 +145,14 @@ timeout:
   returned: changed
   type: int
   sample: 10
-ignore_down_response:
-  description: Whether to ignore the down response or not.
-  returned: changed
-  type: bool
-  sample: True
-probe_timeout:
-  description: The new timeout in which the system will timeout the monitor probe.
-  returned: changed
-  type: int
-  sample: 10
-cipher_list:
-  description: The new value for the cipher list.
-  returned: changed
-  type: string
-  sample: +3DES:+kEDH
-max_load_average:
-  description: The new value for the max load average.
-  returned: changed
-  type: int
-  sample: 12
-concurrency_limit:
-  description: The new value for the concurrency limit.
-  returned: changed
-  type: int
-  sample: 95
 '''
+
+import os
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import env_fallback
+from ansible.module_utils.six import iteritems
 
 try:
     from library.module_utils.network.f5.bigip import HAS_F5SDK
@@ -228,6 +162,7 @@ try:
     from library.module_utils.network.f5.common import cleanup_tokens
     from library.module_utils.network.f5.common import fq_name
     from library.module_utils.network.f5.common import f5_argument_spec
+    from library.module_utils.network.f5.common import compare_dictionary
     from library.module_utils.network.f5.common import is_valid_ip
     try:
         from library.module_utils.network.f5.common import iControlUnexpectedHTTPError
@@ -241,6 +176,7 @@ except ImportError:
     from ansible.module_utils.network.f5.common import cleanup_tokens
     from ansible.module_utils.network.f5.common import fq_name
     from ansible.module_utils.network.f5.common import f5_argument_spec
+    from ansible.module_utils.network.f5.common import compare_dictionary
     from ansible.module_utils.network.f5.common import is_valid_ip
     try:
         from ansible.module_utils.network.f5.common import iControlUnexpectedHTTPError
@@ -251,86 +187,55 @@ except ImportError:
 class Parameters(AnsibleF5Parameters):
     api_map = {
         'defaultsFrom': 'parent',
-        'ignoreDownResponse': 'ignore_down_response',
-        'probeTimeout': 'probe_timeout',
-        'username': 'target_username',
-        'password': 'target_password',
-        'cipherlist': 'cipher_list',
-        'concurrencyLimit': 'concurrency_limit',
-        'maxLoadAverage': 'max_load_average'
+        'apiRawValues': 'variables',
+        'run': 'external_program',
+        'args': 'arguments'
     }
 
     api_attributes = [
-        'defaultsFrom',
-        'interval',
-        'timeout',
-        'destination',
-        'probeTimeout',
-        'ignoreDownResponse',
-        'username',
-        'password',
-        'cipherlist',
-        'concurrencyLimit',
-        'maxLoadAverage'
+        'defaultsFrom', 'interval', 'timeout', 'destination', 'run', 'args'
     ]
 
     returnables = [
-        'parent',
-        'ip',
-        'port',
-        'interval',
-        'timeout',
-        'probe_timeout',
-        'ignore_down_response',
-        'cipher_list',
-        'max_load_average',
-        'concurrency_limit',
+        'parent', 'ip', 'port', 'interval', 'timeout', 'variables', 'external_program',
+        'arguments'
     ]
 
     updatables = [
-        'destination',
-        'interval',
-        'timeout',
-        'probe_timeout',
-        'ignore_down_response',
-        'ip',
-        'port',
-        'target_username',
-        'target_password',
-        'cipher_list',
-        'max_load_average',
-        'concurrency_limit',
+        'destination', 'interval', 'timeout', 'variables', 'external_program',
+        'arguments'
     ]
 
-
-class ApiParameters(Parameters):
-    @property
-    def ip(self):
-        ip, port = self._values['destination'].split(':')
-        return ip
-
-    @property
-    def port(self):
-        ip, port = self._values['destination'].split(':')
+    def to_return(self):
+        result = {}
         try:
-            return int(port)
-        except ValueError:
-            return port
+            for returnable in self.returnables:
+                result[returnable] = getattr(self, returnable)
+            result = self._filter_params(result)
+        except Exception:
+            pass
+        return result
 
     @property
-    def ignore_down_response(self):
-        if self._values['ignore_down_response'] is None:
+    def destination(self):
+        if self.ip is None and self.port is None:
             return None
-        if self._values['ignore_down_response'] == 'disabled':
-            return False
-        return True
+        destination = '{0}:{1}'.format(self.ip, self.port)
+        return destination
 
+    @destination.setter
+    def destination(self, value):
+        ip, port = value.split(':')
+        self._values['ip'] = ip
+        self._values['port'] = port
 
-class ModuleParameters(Parameters):
     @property
     def interval(self):
         if self._values['interval'] is None:
             return None
+
+        # Per BZ617284, the BIG-IP UI does not raise a warning about this.
+        # So I do
         if 1 > int(self._values['interval']) > 86400:
             raise F5ModuleError(
                 "Interval value must be between 1 and 86400"
@@ -357,13 +262,6 @@ class ModuleParameters(Parameters):
             )
 
     @property
-    def parent(self):
-        if self._values['parent'] is None:
-            return None
-        result = fq_name(self.partition, self._values['parent'])
-        return result
-
-    @property
     def port(self):
         if self._values['port'] is None:
             return None
@@ -372,35 +270,54 @@ class ModuleParameters(Parameters):
         return int(self._values['port'])
 
     @property
-    def destination(self):
-        if self.ip is None and self.port is None:
+    def parent(self):
+        if self._values['parent'] is None:
             return None
-        destination = '{0}:{1}'.format(self.ip, self.port)
-        return destination
-
-    @destination.setter
-    def destination(self, value):
-        ip, port = value.split(':')
-        self._values['ip'] = ip
-        self._values['port'] = port
+        if self._values['parent'].startswith('/'):
+            parent = os.path.basename(self._values['parent'])
+            result = '/{0}/{1}'.format(self.partition, parent)
+        else:
+            result = '/{0}/{1}'.format(self.partition, self._values['parent'])
+        return result
 
     @property
-    def probe_timeout(self):
-        if self._values['probe_timeout'] is None:
+    def type(self):
+        return 'external'
+
+
+class ApiParameters(Parameters):
+    @property
+    def variables(self):
+        if self._values['variables'] is None:
             return None
-        return int(self._values['probe_timeout'])
+        pattern = r'^userDefined\s(?P<key>.*)'
+        result = {}
+        for k, v in iteritems(self._values['variables']):
+            matches = re.match(pattern, k)
+            if not matches:
+                raise F5ModuleError(
+                    "Unable to find the variable 'key' in the API payload."
+                )
+            key = matches.group('key')
+            result[key] = v
+        return result
+
+
+class ModuleParameters(Parameters):
+    @property
+    def variables(self):
+        if self._values['variables'] is None:
+            return None
+        result = {}
+        for k, v in iteritems(self._values['variables']):
+            result[k] = str(v).replace('"', '')
+        return result
 
     @property
-    def max_load_average(self):
-        if self._values['max_load_average'] is None:
+    def external_program(self):
+        if self._values['external_program'] is None:
             return None
-        return int(self._values['max_load_average'])
-
-    @property
-    def concurrency_limit(self):
-        if self._values['concurrency_limit'] is None:
-            return None
-        return int(self._values['concurrency_limit'])
+        return fq_name(self.partition, self._values['external_program'])
 
 
 class Changes(Parameters):
@@ -416,31 +333,11 @@ class Changes(Parameters):
 
 
 class UsableChanges(Changes):
-    @property
-    def ignore_down_response(self):
-        if self._values['ignore_down_response'] is None:
-            return None
-        elif self._values['ignore_down_response'] is True:
-            return 'enabled'
-        return 'disabled'
+    pass
 
 
 class ReportableChanges(Changes):
-    @property
-    def ip(self):
-        ip, port = self._values['destination'].split(':')
-        return ip
-
-    @property
-    def port(self):
-        ip, port = self._values['destination'].split(':')
-        return int(port)
-
-    @property
-    def ignore_down_response(self):
-        if self._values['ignore_down_response'] == 'enabled':
-            return True
-        return False
+    pass
 
 
 class Difference(object):
@@ -509,11 +406,32 @@ class Difference(object):
             return self.want.interval
 
     @property
-    def target_password(self):
-        if self.want.target_password != self.have.target_password:
-            if self.want.update_password == 'always':
-                result = self.want.target_password
-                return result
+    def variables(self):
+        if self.want.variables is None:
+            return None
+        if self.have.variables is None:
+            return dict(
+                variables=self.want.variables
+            )
+        result = dict()
+
+        different = compare_dictionary([self.want.variables], [self.have.variables])
+        if not different:
+            return None
+
+        for k, v in iteritems(self.want.variables):
+            if k in self.have.variables and v != self.have.variables[k]:
+                result[k] = v
+            elif k not in self.have.variables:
+                result[k] = v
+        for k, v in iteritems(self.have.variables):
+            if k not in self.want.variables:
+                result[k] = "none"
+        if result:
+            result = dict(
+                variables=result
+            )
+            return result
 
 
 class ModuleManager(object):
@@ -584,38 +502,26 @@ class ModuleManager(object):
                 version=warning['version']
             )
 
-    def _set_default_creation_values(self):
-        if self.want.timeout is None:
-            self.want.update({'timeout': 90})
-        if self.want.interval is None:
-            self.want.update({'interval': 30})
-        if self.want.probe_timeout is None:
-            self.want.update({'probe_timeout': 5})
-        if self.want.ip is None:
-            self.want.update({'ip': '*'})
-        if self.want.port is None:
-            self.want.update({'port': '*'})
-        if self.want.ignore_down_response is None:
-            self.want.update({'ignore_down_response': False})
-        if self.want.cipher_list is None:
-            self.want.update({'cipher_list': 'HIGH:!ADH'})
-        if self.want.max_load_average is None:
-            self.want.update({'max_load_average': 12})
-        if self.want.concurrency_limit is None:
-            self.want.update({'concurrency_limit': 95})
-
     def present(self):
         if self.exists():
             return self.update()
         else:
             return self.create()
 
-    def exists(self):
-        result = self.client.api.tm.gtm.monitor.firepass_s.firepass.exists(
-            name=self.want.name,
-            partition=self.want.partition
-        )
-        return result
+    def create(self):
+        self._set_changed_options()
+        if self.want.timeout is None:
+            self.want.update({'timeout': 16})
+        if self.want.interval is None:
+            self.want.update({'interval': 5})
+        if self.want.ip is None:
+            self.want.update({'ip': '*'})
+        if self.want.port is None:
+            self.want.update({'port': '*'})
+        if self.module.check_mode:
+            return True
+        self.create_on_device()
+        return True
 
     def update(self):
         self.have = self.read_current_from_device()
@@ -626,58 +532,70 @@ class ModuleManager(object):
         self.update_on_device()
         return True
 
-    def remove(self):
-        if self.module.check_mode:
-            return True
-        self.remove_from_device()
-        if self.exists():
-            raise F5ModuleError("Failed to delete the resource.")
-        return True
-
-    def create(self):
-        self._set_default_creation_values()
-        self._set_changed_options()
-        if self.module.check_mode:
-            return True
-        self.create_on_device()
-        return True
-
-    def create_on_device(self):
-        params = self.changes.api_params()
-        self.client.api.tm.gtm.monitor.firepass_s.firepass.create(
-            name=self.want.name,
-            partition=self.want.partition,
-            **params
-        )
-
-    def update_on_device(self):
-        params = self.changes.api_params()
-        resource = self.client.api.tm.gtm.monitor.firepass_s.firepass.load(
-            name=self.want.name,
-            partition=self.want.partition
-        )
-        resource.modify(**params)
-
     def absent(self):
         if self.exists():
             return self.remove()
         return False
 
-    def remove_from_device(self):
-        resource = self.client.api.tm.gtm.monitor.firepass_s.firepass.load(
-            name=self.want.name,
-            partition=self.want.partition
-        )
-        if resource:
-            resource.delete()
+    def remove(self):
+        if self.module.check_mode:
+            return True
+        self.remove_from_device()
+        if self.exists():
+            raise F5ModuleError("Failed to delete the monitor.")
+        return True
 
     def read_current_from_device(self):
-        resource = self.client.api.tm.gtm.monitor.firepass_s.firepass.load(
+        resource = self.client.api.tm.ltm.monitor.externals.external.load(
             name=self.want.name,
             partition=self.want.partition
         )
         result = resource.attrs
         return ApiParameters(params=result)
+
+    def exists(self):
+        result = self.client.api.tm.ltm.monitor.externals.external.exists(
+            name=self.want.name,
+            partition=self.want.partition
+        )
+        return result
+
+    def update_on_device(self):
+        params = self.changes.api_params()
+        result = self.client.api.tm.ltm.monitor.externals.external.load(
+            name=self.want.name,
+            partition=self.want.partition
+        )
+        if params:
+            result.modify(**params)
+        if self.changes.variables:
+            self.set_variable_on_device(self.changes.variables)
+
+    def set_variable_on_device(self, commands):
+        command = ' '.join(['user-defined {0} \\\"{1}\\\"'.format(k, v) for k, v in iteritems(commands)])
+        command = 'tmsh modify ltm monitor external {0} {1}'.format(self.want.name, command)
+        self.client.api.tm.util.bash.exec_cmd(
+            'run',
+            utilCmdArgs='-c "{0}"'.format(command)
+        )
+
+    def create_on_device(self):
+        params = self.want.api_params()
+        self.client.api.tm.ltm.monitor.externals.external.create(
+            name=self.want.name,
+            partition=self.want.partition,
+            **params
+        )
+        if self.want.variables:
+            self.set_variable_on_device(self.want.variables)
+
+    def remove_from_device(self):
+        result = self.client.api.tm.ltm.monitor.externals.external.load(
+            name=self.want.name,
+            partition=self.want.partition
+        )
+        if result:
+            result.delete()
 
 
 class ArgumentSpec(object):
@@ -685,26 +603,18 @@ class ArgumentSpec(object):
         self.supports_check_mode = True
         argument_spec = dict(
             name=dict(required=True),
-            parent=dict(default='/Common/firepass_gtm'),
+            parent=dict(default='/Common/external'),
+            arguments=dict(),
             ip=dict(),
             port=dict(type='int'),
+            external_program=dict(),
             interval=dict(type='int'),
             timeout=dict(type='int'),
-            ignore_down_response=dict(type='bool'),
-            probe_timeout=dict(type='int'),
-            target_username=dict(),
-            target_password=dict(no_log=True),
-            cipher_list=dict(),
-            update_password=dict(
-                default='always',
-                choices=['always', 'on_create']
-            ),
-            max_load_average=dict(type='int'),
-            concurrency_limit=dict(type='int'),
             state=dict(
                 default='present',
                 choices=['present', 'absent']
             ),
+            variables=dict(type='dict'),
             partition=dict(
                 default='Common',
                 fallback=(env_fallback, ['F5_PARTITION'])
