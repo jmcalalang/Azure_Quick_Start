@@ -15,7 +15,7 @@
                "serviceMain": {
                    "class": "Service_HTTP",
                    "virtualAddresses": [
-                       "10.128.10.27"
+                       "10.128.10.29"
                    ],
                    "snat": "auto",
                    "pool": "Pool1"
@@ -26,14 +26,8 @@
                        "http"
                    ],
                    "members": [
-                     {
-                           "servicePort": 80,
-                           "serverAddresses": [
-                             "10.128.20.4"
-                           ]
-                       },
                        {
-                           "servicePort": 81,
+                           "servicePort": 83,
                            "serverAddresses": [
                                "10.128.20.4"
                            ]

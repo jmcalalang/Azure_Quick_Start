@@ -12,7 +12,6 @@
 - bigip_pool:
     lb_method: ratio-member
     name: service_1_pl
-    partition: Common
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     slow_ramp_time: "120"
@@ -22,7 +21,7 @@
   name: "Create a pool"
 
 - bigip_node:
-    host: "10.10.10.10"
+    host: "10.128.20.4"
     name: node-1
     password: "{{ BIGIPadminPassword }}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
@@ -72,7 +71,7 @@
       - http
       - clientssl
     description: foo-vip
-    destination: "10.128.10.21"
+    destination: "10.128.10.26"
     name: service_1_vs
     password: "{{ BIGIPadminPassword }}"
     pool: service_1_pl
