@@ -15,7 +15,7 @@
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
     body_format: json
     method: POST
-    url: "https://{{resource_group_name}}-0.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
     status_code: 200
     validate_certs: no
   register: bigip_auth_response
