@@ -19,7 +19,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Get Bigip Authentication Token from {{resource_group_name}}-0.{{location}}.cloudapp.azure.com
+- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
@@ -36,19 +36,23 @@
 
 - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
   azure_rm_securitygroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{resource_group_name}}-ext-nsg"
     purge_rules: no
     rules:
-      - name: 'AllowHTTPS'
+      - name: 'AllowHTTPs'
         protocol: Tcp
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 443
         access: Allow
-        priority: 101
+        priority: 103
         direction: Inbound
 
-- name: Deploy Service 4 (Web Application Firewall Service) from AS3
+- name: Deploy Service 4 (AS3 Build WAF Application) from AS3
   delegate_to: localhost
   uri:
     body: "{{ lookup('file','service_4.json') | to_json }}"
