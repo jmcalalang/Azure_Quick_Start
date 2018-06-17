@@ -4,7 +4,7 @@
   bigip_wait:
     timeout: 300
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}-0.{{location}}.cloudapp.azure.com"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
   delegate_to: localhost
@@ -13,7 +13,7 @@
   bigip_iapplx_package:
     package: "{{ role_path }}/files/f5-appsvcs-3.0.0-34.noarch.rpm"
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}-0.{{location}}.cloudapp.azure.com"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
@@ -25,7 +25,7 @@
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
     body_format: json
     method: POST
-    url: "https://{{resource_group_name}}-0.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
     status_code: 200
     validate_certs: no
   register: bigip_auth_response
@@ -57,7 +57,7 @@
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
     method: POST
     status_code: 200
-    url: "https://{{resource_group_name}}-0.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
 - name: Webhook Notification to Teams for Build
