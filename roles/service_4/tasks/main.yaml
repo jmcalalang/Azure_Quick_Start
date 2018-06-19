@@ -19,7 +19,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Import and activate Service 4 ASM policy
+- name: Import and Activate Service 4 ASM policy
   bigip_asm_policy:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
