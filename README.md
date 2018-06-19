@@ -25,6 +25,10 @@ region for deployment
 
 **location**: "westus"
 
+### To Run this Solution
+
+If you are running this solution from your own environment, you should read the **dependency notes** from this repository. If you are deploying this with the **f5-rs-container** after launching the container `git pull https://www.github.com/jmcalalang/f5-rs-azure` and then `apk add rpm`. Change directory into the `f5-rs-azure` folder and update `parent_parameters` for your deployment.
+
 ### Definition of Solutions:
 
 **run_ansible_application** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
