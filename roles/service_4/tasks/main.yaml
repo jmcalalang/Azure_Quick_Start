@@ -55,7 +55,7 @@
 - name: Import and activate ASM policy
   bigip_asm_policy:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: {{BIGIPadminUsername}}"
+    user: ""{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     name: Service_4_WAF
     file: "{{ role_path }}/files/linux-high.xml"
