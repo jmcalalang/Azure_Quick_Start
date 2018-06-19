@@ -89,7 +89,7 @@
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
   uri:
-    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "**Service 4 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 4 Button** to be taken to the Service 4 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 4", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}3.{{location}}.cloudapp.azure.com" }] }] }
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 4 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 4 Button** to be taken to the Service 4 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 4", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}3.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200
