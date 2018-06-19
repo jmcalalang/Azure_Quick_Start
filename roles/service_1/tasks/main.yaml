@@ -9,45 +9,50 @@
   delegate_to: localhost
   name: "Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration"
 
-- bigip_pool:
-    lb_method: ratio-member
-    name: service_1_pl
-    password: "{{BIGIPadminPassword}}"
+- name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    slow_ramp_time: "120"
     user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
     validate_certs: false
+    state: present
+    name: service_1_pl
+    partition: Service1
+    lb_method: least-connections-member
+    slow_ramp_time: 120
   delegate_to: localhost
-  name: "Create a pool"
 
-- bigip_node:
-    host: "10.128.20.4"
-    name: node-1
-    password: "{{ BIGIPadminPassword }}"
+- name: Add a node on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_node:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
-    validate_certs: false
-  delegate_to: localhost
-  name: "Create node1"
-
-- bigip_pool_member:
-    description: webserver-1
-    host: "{{ item.host }}"
-    name: "{{ item.name }}"
     password: "{{ BIGIPadminPassword }}"
+    validate_certs: false
+    state: present
+    partition: Service1
+    host: 10.128.20.4
+    name: node_1
+  delegate_to: localhost
+
+- name: Add pool member to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_pool_member:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{ BIGIPadminUsername }}"
+    password: "{{ BIGIPadminPassword }}"
+    validate_certs: false
+    state: present
     pool: service_1_pl
-    port: "80"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{ BIGIPadminUsername }}"
-    validate_certs: false
+    partition: Service1
+    host: 10.128.20.4
+    port: 80
+    description: web server
+    connection_limit: 100
+    rate_limit: 50
+    ratio: 2
   delegate_to: localhost
-  name: "Add nodes to pool"
-  with_items:
-    -
-      host: "10.128.20.4"
-      name: node-1
 
-- azure_rm_securitygroup:
+- name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
+  azure_rm_securitygroup:
     client_id: "{{ clientId }}"
     name: "{{resource_group_name}}-ext-nsg"
     purge_rules: false
@@ -64,24 +69,23 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     tenant: "{{ tenantId }}"
-  name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
 
-- bigip_virtual_server:
-    all_profiles:
-      - http
-      - clientssl
-    description: foo-vip
-    destination: "10.128.10.26"
-    name: service_1_vs
-    password: "{{ BIGIPadminPassword }}"
-    pool: service_1_pl
-    port: "80"
+- name: Add virtual server for Service 1 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_virtual_server:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    snat: Automap
     user: "{{ BIGIPadminUsername }}"
+    password: "{{ BIGIPadminPassword }}"
     validate_certs: false
-  delegate_to: localhost
-  name: "Create a VIP"
+    state: present
+    partition: Service1
+    name: service_1_vs
+    destination: 10.128.10.26
+    port: 80
+    pool: service_1_pl
+    snat: Automap
+    description: Test Virtual Server
+    profiles:
+      - http
 
 - name: "Webhook Notification to Teams for Build"
   uri:
