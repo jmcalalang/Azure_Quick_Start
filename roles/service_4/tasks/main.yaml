@@ -41,7 +41,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'

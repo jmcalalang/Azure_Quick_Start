@@ -19,7 +19,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
@@ -67,7 +67,7 @@
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
   uri:
-    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "**Service 3 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 3 Button** to be taken to the Service 3 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 3", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}2.{{location}}.cloudapp.azure.com" }] }] }
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "**Service 3 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 3 Button** to be taken to the Service 3 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 3", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}2.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200

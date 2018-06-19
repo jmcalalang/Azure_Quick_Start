@@ -1,5 +1,7 @@
 # Create or update a Service 5, AS3 Build APM Application
 
+# THIS SERVICE IS UNDER CONSTRUCTION APM DOESNT HAVE AN ANSIBLE UPLOAD MODULE
+
 - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
   bigip_wait:
     timeout: 300
@@ -9,9 +11,31 @@
     validate_certs: no
   delegate_to: localhost
 
+- name: Provision APM at "nominal" level
+  bigip_provision:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    module: apm
+    level: nominal
+    password: "{{BIGIPadminPassword}}"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: no
+  delegate_to: localhost
+
+- name: Import and Service 4 APM policy
+  bigip_asm_policy:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
+    name: Service_5_APM
+    file: "{{ role_path }}/files/apm.policy"
+    active: yes
+    state: present
+    validate_certs: no
+  delegate_to: localhost
+
 - name: Add an iAppLX Package for Application Services 3
   bigip_iapplx_package:
-    package: "{{ role_path }}/files/f5-appsvcs-3.0.0-34.noarch.rpm"
+    package: "{{ role_path }}/files/f5-appsvcs-3.1.0-3.noarch.rpm"
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
@@ -19,7 +43,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
@@ -49,7 +73,7 @@
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 443
         access: Allow
-        priority: 104
+        priority: 103
         direction: Inbound
 
 - name: Deploy Service 5 (AS3 Build APM Application) from AS3
@@ -67,7 +91,7 @@
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"Service 5 was created from AS3!\"}"
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "**Service 5 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 5 Button** to be taken to the Service 4 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 5", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}4.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200
