@@ -27,7 +27,7 @@
 					},
 					"serverTLS": "TLS_Offload",
 					"policyWAF": {
-						"bigip": "/Common/linux-high"
+						"bigip": "/Common/Service_4_WAF"
 					}
 				},
 				"Pool1": {
