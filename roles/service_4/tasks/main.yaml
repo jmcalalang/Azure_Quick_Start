@@ -9,6 +9,28 @@
     validate_certs: no
   delegate_to: localhost
 
+- name: Provision ASM at "nominal" level
+  bigip_provision:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    module: asm
+    level: nominal
+    password: "{{BIGIPadminPassword}}"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: no
+  delegate_to: localhost
+
+- name: Import and activate Service 4 ASM policy
+  bigip_asm_policy:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
+    name: Service_4_WAF
+    file: "{{ role_path }}/files/linux-high.xml"
+    active: yes
+    state: present
+    validate_certs: no
+  delegate_to: localhost
+
 - name: Add an iAppLX Package for Application Services 3
   bigip_iapplx_package:
     package: "{{ role_path }}/files/f5-appsvcs-3.0.0-34.noarch.rpm"
@@ -51,17 +73,6 @@
         access: Allow
         priority: 103
         direction: Inbound
-
-- name: Import and activate ASM policy
-  bigip_asm_policy:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{BIGIPadminUsername}}"
-    password: "{{BIGIPadminPassword}}"
-    name: Service_4_WAF
-    file: "{{ role_path }}/files/linux-high.xml"
-    active: yes
-    state: present
-  delegate_to: localhost
 
 - name: Deploy Service 4 (AS3 Build WAF Application) from AS3
   delegate_to: localhost
