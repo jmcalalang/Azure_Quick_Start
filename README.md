@@ -7,7 +7,7 @@ Each solution is broken out into individual components to be run alone, however 
 
 This solution is ideally used in conjunction with the F5 Resource Solutions, there are different projects on-going so please refer to the index for things that can be shown.
 
-I highly recommend using a docker container created from F5 engineer Yossi: `docker run -p 2222:22 -p 10000:8080 -it --rm yossiros/f5-rs-container:latest` this container includes the needed modules for BIG-IP, Azure, AWS and Ansible
+I highly recommend using a docker container created from F5 engineer Yossi: `docker run -p 2222:22 -p 10000:8080 -it --rm f5usecases/f5-rs-container:latest` this container includes the needed modules for BIG-IP, Azure, AWS and Ansible
 
 ### Custom Parameters
 
@@ -27,7 +27,7 @@ region for deployment
 
 ### To Run this Solution
 
-If you are running this solution from your own environment, you should read the **dependency notes** from this repository. If you are deploying this with the **f5-rs-container** after launching the container `git pull https://www.github.com/jmcalalang/f5-rs-azure` and then `apk add rpm`. Change directory into the `f5-rs-azure` folder and update `parent_parameters` for your deployment.
+If you are running this solution from your own environment, you should read the **dependency notes** from this repository. If you are deploying this with the **f5-rs-container** after launching the container `git pull https://www.github.com/jmcalalang/f5-rs-azure`. Change directory into the `f5-rs-azure` folder and update `parent_parameters` for your deployment.
 
 ### Definition of Solutions:
 
