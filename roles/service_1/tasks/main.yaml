@@ -29,6 +29,8 @@
     partition: Service1
     lb_method: least-connections-member
     slow_ramp_time: 120
+    monitors:
+      - http
   delegate_to: localhost
 
 - name: Add pool member to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
@@ -80,7 +82,7 @@
     port: 80
     pool: service_1_pl
     snat: Automap
-    description: Test Virtual Server
+    description: Service_1
     profiles:
       - http
 
