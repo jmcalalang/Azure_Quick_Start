@@ -29,6 +29,7 @@
     partition: Service1
     lb_method: least-connections-member
     slow_ramp_time: 120
+    monitor_type: single
     monitors:
       - http
   delegate_to: localhost
