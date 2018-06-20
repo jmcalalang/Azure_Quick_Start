@@ -31,18 +31,6 @@
     slow_ramp_time: 120
   delegate_to: localhost
 
-- name: Add a node on {{resource_group_name}}.{{location}}.cloudapp.azure.com
-  bigip_node:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{ BIGIPadminUsername }}"
-    password: "{{ BIGIPadminPassword }}"
-    validate_certs: false
-    state: present
-    partition: Service1
-    host: 10.128.20.4
-    name: node_1
-  delegate_to: localhost
-
 - name: Add pool member to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool_member:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
