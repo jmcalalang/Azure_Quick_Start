@@ -15,7 +15,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: bigiq_regkey_license_assignment
-short_description: Manage regkey license assignment on BIG-IPs from a BIG-IQ.
+short_description: Manage regkey license assignment on BIG-IPs from a BIG-IQ
 description:
   - Manages the assignment of regkey licenses on a BIG-IQ. Assignment means that
     the license is assigned to a BIG-IP, or, it needs to be assigned to a BIG-IP.
@@ -89,7 +89,7 @@ EXAMPLES = r'''
     user: admin
   delegate_to: localhost
 
-- name: Register an managed device, by name
+- name: Register a managed device, by name
   bigiq_regkey_license_assignment:
     pool: my-regkey-pool
     key: XXXX-XXXX-XXXX-XXXX-XXXX
@@ -101,7 +101,7 @@ EXAMPLES = r'''
     user: admin
   delegate_to: localhost
 
-- name: Register an managed device, by UUID
+- name: Register a managed device, by UUID
   bigiq_regkey_license_assignment:
     pool: my-regkey-pool
     key: XXXX-XXXX-XXXX-XXXX-XXXX
@@ -119,6 +119,7 @@ RETURN = r'''
 '''
 
 import re
+import time
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -479,6 +480,10 @@ class ModuleManager(object):
         self.remove_from_device()
         if self.exists():
             raise F5ModuleError("Failed to delete the resource.")
+        # Artificial sleeping to wait for remote licensing (on BIG-IP) to complete
+        #
+        # This should be something that BIG-IQ can do natively in 6.1-ish time.
+        time.sleep(60)
         return True
 
     def create(self):
@@ -500,6 +505,11 @@ class ModuleManager(object):
                 "Failed to license the remote device."
             )
         self.wait_for_device_to_be_licensed()
+
+        # Artificial sleeping to wait for remote licensing (on BIG-IP) to complete
+        #
+        # This should be something that BIG-IQ can do natively in 6.1-ish time.
+        time.sleep(60)
         return True
 
     def create_on_device(self):
@@ -525,7 +535,7 @@ class ModuleManager(object):
             if 'message' in response:
                 raise F5ModuleError(response['message'])
             else:
-                raise F5ModuleError(resp._content)
+                raise F5ModuleError(resp.content)
 
     def wait_for_device_to_be_licensed(self):
         count = 0
@@ -547,7 +557,7 @@ class ModuleManager(object):
                 if 'message' in response:
                     raise F5ModuleError(response['message'])
                 else:
-                    raise F5ModuleError(resp._content)
+                    raise F5ModuleError(resp.content)
             if response['status'] == 'LICENSED':
                 count += 1
             else:

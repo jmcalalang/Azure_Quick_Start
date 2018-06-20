@@ -34,7 +34,7 @@ options:
       - Specifies a value that the system applies to the source address to determine
         its eligibility for reuse.
       - When creating a new profile, if this parameter is not specified, the
-        default of C(0) will be used.
+        default is provided by the parent profile.
       - The system applies the value of this setting to the server-side source address to
         determine its eligibility for reuse.
       - A mask of C(0) causes the system to share reused connections across all source
@@ -52,7 +52,7 @@ options:
       - If the pool is already full, then a server-side connection closes after the
         response is completed.
       - When creating a new profile, if this parameter is not specified, the
-        default is C(10000).
+        default is provided by the parent profile.
   maximum_age:
     description:
       - Specifies the maximum number of seconds allowed for a connection in the connection
@@ -60,18 +60,18 @@ options:
       - For any connection with an age higher than this value, the system removes that
         connection from the re-use pool.
       - When creating a new profile, if this parameter is not specified, the
-        default is C(86400).
+        default is provided by the parent profile.
   maximum_reuse:
     description:
       - Specifies the maximum number of times that a server-side connection can be reused.
       - When creating a new profile, if this parameter is not specified, the
-        default is C(1000).
+        default is provided by the parent profile.
   idle_timeout_override:
     description:
       - Specifies the number of seconds that a connection is idle before the connection
         flow is eligible for deletion.
-      - When creating a new profile, if this parameter is not specified, the default is
-        C(disabled).
+      - When creating a new profile, if this parameter is not specified, the default
+        is provided by the parent profile.
       - You may specify a number of seconds for the timeout override.
       - When C(disabled), specifies that there is no timeout override for the connection.
       - When C(indefinite), Specifies that a connection may be idle with no timeout
@@ -89,8 +89,8 @@ options:
         they expire, even if they could otherwise be reused.
       - C(strict) is not a recommended configuration except in very special cases with
         short expiration timeouts.
-      - When creating a new profile, if this parameter is not specified, the default of
-        C(none) will be used.
+      - When creating a new profile, if this parameter is not specified, the default
+        is provided by the parent profile.
     choices:
       - none
       - idle
@@ -101,8 +101,8 @@ options:
         also among similar virtual servers
       - When C(yes), all virtual servers that use the same OneConnect and other internal
         network profiles can share connections.
-      - When creating a new profile, if this parameter is not specified, the default of
-        C(no) will be used.
+      - When creating a new profile, if this parameter is not specified, the default
+        is provided by the parent profile.
     type: bool
   partition:
     description:
@@ -116,11 +116,6 @@ options:
     choices:
       - present
       - absent
-notes:
-  - Requires the netaddr Python package on the host. This is as easy as pip
-    install netaddr.
-requirements:
-  - netaddr
 extends_documentation_fragment: f5
 author:
   - Tim Rupp (@caphrim007)
@@ -191,6 +186,7 @@ try:
     from library.module_utils.network.f5.common import cleanup_tokens
     from library.module_utils.network.f5.common import fq_name
     from library.module_utils.network.f5.common import f5_argument_spec
+    from library.module_utils.network.f5.common import is_valid_ip
     try:
         from library.module_utils.network.f5.common import iControlUnexpectedHTTPError
     except ImportError:
@@ -203,16 +199,11 @@ except ImportError:
     from ansible.module_utils.network.f5.common import cleanup_tokens
     from ansible.module_utils.network.f5.common import fq_name
     from ansible.module_utils.network.f5.common import f5_argument_spec
+    from ansible.module_utils.network.f5.common import is_valid_ip
     try:
         from ansible.module_utils.network.f5.common import iControlUnexpectedHTTPError
     except ImportError:
         HAS_F5SDK = False
-
-try:
-    import netaddr
-    HAS_NETADDR = True
-except ImportError:
-    HAS_NETADDR = False
 
 
 class Parameters(AnsibleF5Parameters):
@@ -305,12 +296,15 @@ class ModuleParameters(Parameters):
         elif self._values['source_mask'] == 'any':
             return 0
         try:
-            cidr = int(self._values['source_mask'])
-            addr = netaddr.IPNetwork('0/{0}'.format(cidr))
-            return str(addr.netmask)
+            int(self._values['source_mask'])
+            raise F5ModuleError(
+                "'source_mask' must not be in CIDR format."
+            )
         except ValueError:
-            addr = netaddr.IPNetwork(self._values['source_mask'])
-            return str(addr.ip)
+            pass
+
+        if is_valid_ip(self._values['source_mask']):
+            return self._values['source_mask']
 
     @property
     def share_pools(self):
@@ -484,16 +478,6 @@ class ModuleManager(object):
 
     def create(self):
         self._set_changed_options()
-        if self.want.limit_type is None:
-            self.want.update({'limit_type': 'none'})
-        if self.want.idle_timeout_override is None:
-            self.want.update({'idle_timeout_override': 'disabled'})
-        if self.want.maximum_reuse is None:
-            self.want.update({'maximum_reuse': 1000})
-        if self.want.maximum_age is None:
-            self.want.update({'maximum_age': 86400})
-        if self.want.maximum_size is None:
-            self.want.update({'maximum_size': 10000})
         if self.module.check_mode:
             return True
         self.create_on_device()
@@ -576,8 +560,6 @@ def main():
     )
     if not HAS_F5SDK:
         module.fail_json(msg="The python f5-sdk module is required")
-    if not HAS_NETADDR:
-        module.fail_json(msg="The python netaddr module is required")
 
     try:
         client = F5Client(**module.params)
