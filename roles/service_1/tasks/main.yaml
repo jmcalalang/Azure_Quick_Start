@@ -9,18 +9,18 @@
   delegate_to: localhost
   name: "Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration"
 
-- name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
-  bigip_pool:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{BIGIPadminUsername}}"
-    password: "{{BIGIPadminPassword}}"
-    validate_certs: false
-    state: present
-    name: service_1_pl
-    partition: Service1
-    lb_method: least-connections-member
-    slow_ramp_time: 120
-  delegate_to: localhost
+#- name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+#  bigip_pool:
+#    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+#    user: "{{BIGIPadminUsername}}"
+#    password: "{{BIGIPadminPassword}}"
+#    validate_certs: false
+#    state: present
+#    name: service_1_pl
+#    partition: Service1
+#    lb_method: least-connections-member
+#    slow_ramp_time: 120
+#  delegate_to: localhost
 
 - name: Add a node on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_node:
