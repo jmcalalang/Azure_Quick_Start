@@ -28,13 +28,13 @@
 					"members": [{
 							"servicePort": 82,
 							"serverAddresses": [
-								"/Service1/10.128.20.4"
+								"10.128.20.4"
 							]
 						},
 						{
 							"servicePort": 102,
 							"serverAddresses": [
-								"/Service1/10.128.20.4"
+								"10.128.20.4"
 							]
 						}
 
