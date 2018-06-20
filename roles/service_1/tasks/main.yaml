@@ -9,6 +9,15 @@
   delegate_to: localhost
   name: "Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration"
 
+- name: Create partition "Service1" using the default route domain
+  bigip_partition:
+    name: Service1
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: false
+  delegate_to: localhost
+
 - name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
