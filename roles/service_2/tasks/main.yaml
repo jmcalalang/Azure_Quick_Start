@@ -46,7 +46,7 @@
   bigip_iapp_service:
     name: Service_2
     template: f5.http
-    parameters: "{{ lookup('file', 'service_2.json') }}"
+    body: "{{ lookup('file', 'service_2.json') }}"
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
