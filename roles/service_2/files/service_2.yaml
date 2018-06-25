@@ -38,6 +38,8 @@ vars:
   ssl__client_ssl_profile: "/#create_new#"
   ssl__key: "/Common/default.key"
   ssl__mode: client_ssl
+  ssl_encryption_questions__advanced: "yes"
+  ssl_encryption_questions__help: hide
   stats__analytics: "/#do_not_use#"
   stats__request_logging: "/#do_not_use#"
   stats__tcp_analytics: "/#do_not_use#"
@@ -49,7 +51,7 @@ tables:
     columns:
     - name
     rows:
-    - - " {{resource_group_name}}1.{{location}}.cloudapp.azure.com "
+    - - www.f5labs.one
   pool__members:
     columns:
     - addr
