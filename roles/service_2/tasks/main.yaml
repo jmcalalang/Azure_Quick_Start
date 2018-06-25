@@ -1,4 +1,4 @@
-# Create or update a Service 2, f5.http iapp Build Simple Application
+# Create or update a Service 2, f5.http iapp Build Simple HTTPS Application
 
 - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
   bigip_wait:

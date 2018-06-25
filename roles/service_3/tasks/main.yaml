@@ -1,4 +1,4 @@
-# Create or update a Service 3, AS3 Build Simple Application
+# Create or update a Service 3, AS3 Build Simple HTTP Application
 
 - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
   bigip_wait:
