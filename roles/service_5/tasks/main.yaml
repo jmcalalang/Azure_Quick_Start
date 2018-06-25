@@ -73,7 +73,7 @@
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 443
         access: Allow
-        priority: 103
+        priority: 101
         direction: Inbound
 
 - name: Deploy Service 5 (AS3 Build APM Application) from AS3

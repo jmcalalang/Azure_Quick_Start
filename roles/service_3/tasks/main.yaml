@@ -49,7 +49,7 @@
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 80
         access: Allow
-        priority: 102
+        priority: 100
         direction: Inbound
 
 - name: Deploy Service 3 (AS3 Build Simple Application) from AS3
