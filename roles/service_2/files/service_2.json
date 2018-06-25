@@ -1,5 +1,4 @@
 {
-	"name": "Service_2",
 	"template": "f5.http",
 	"vars": {
 		"afm__policy": "/#do_not_use#",
