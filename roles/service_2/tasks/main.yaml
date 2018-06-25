@@ -37,7 +37,7 @@
       - name: 'AllowHTTP'
         protocol: Tcp
         source_address_prefix: '{{restrictedSrcAddress}}'
-        destination_port_range: 80
+        destination_port_range: 80,443
         access: Allow
         priority: 101
         direction: Inbound
