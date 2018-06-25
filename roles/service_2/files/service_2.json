@@ -1,0 +1,57 @@
+{
+	"name": "Service_2",
+	"template": "f5.http",
+	"vars": {
+		"afm__policy": "/#do_not_use#",
+		"asm__use_asm": "/#do_not_use#",
+		"client__http_compression": "/#create_new#",
+		"monitor__monitor": "/#create_new#",
+		"monitor__response": "",
+		"monitor__uri": "/",
+		"net__client_mode": "wan",
+		"net__server_mode": "lan",
+		"net__v13_tcp": "yes",
+		"pool__addr": "10.128.10.27",
+		"pool__pool_to_use": "/#create_new#",
+		"pool__port": "80",
+		"ssl__mode": "no_ssl",
+		"ssl_encryption_questions__advanced": "no",
+		"ssl_encryption_questions__help": "hide"
+	},
+	"tables": {
+		"basic__snatpool_members": {},
+		"net__snatpool_members": {},
+		"optimizations__hosts": {},
+		"pool__hosts": {
+			"columns": [
+				"name"
+			],
+			"rows": [
+				[
+					"service2.cloudapp.azure.com"
+				]
+			]
+		},
+		"pool__members": {
+			"columns": [
+				"addr",
+				"port",
+				"connection_limit"
+			],
+			"rows": [
+				[
+					"10.128.20.4",
+					"81",
+					"0"
+				],
+				[
+					"10.128.20.4",
+					"101",
+					"0"
+				]
+			]
+		},
+		"server_pools__servers": {}
+	},
+	"selfLink": "https://localhost/mgmt/tm/cloud/services/iapp/Service_2"
+}

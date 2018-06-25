@@ -1,74 +1,65 @@
 # Create or update a Service 2, f5.http iapp Build Simple Application
 
-      - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
-        bigip_wait:
-          timeout: 300
-          password: "{{BIGIPadminPassword}}"
-          server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-          user: "{{BIGIPadminUsername}}"
-          validate_certs: no
-        delegate_to: localhost
+- name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
+  bigip_wait:
+    timeout: 300
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: no
+  delegate_to: localhost
 
-      - name: Create a pool
-        bigip_pool:
-            lb_method: "ratio-member"
-            name: "service_2_pl"
-            password: "{{ BIGIPadminPassword }}"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            slow_ramp_time: "120"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-        delegate_to: localhost
+- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  delegate_to: localhost
+  uri:
+    body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
+    body_format: json
+    method: POST
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    status_code: 200
+    validate_certs: no
+  register: bigip_auth_response
 
-      - name: Create node1
-        bigip_node:
-            host: "10.10.10.10"
-            name: "node-1"
-            password: "{{ BIGIPadminPassword }}"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-        delegate_to: localhost
+- name: Assign Auth Token to Variable
+  set_fact:
+    bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
-      - name: Add nodes to pool
-        bigip_pool_member:
-            description: "webserver-1"
-            host: "{{ item.host }}"
-            name: "{{ item.name }}"
-            password: "{{ BIGIPadminPassword }}"
-            pool: "service_2_pl"
-            port: "80"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            user: "{{ BIGIPadminUsername }}"
-            validate_certs: no
-        delegate_to: localhost
-        with_items:
-            - host: "10.128.20.4"
-              name: "node-1"
+- name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
+  azure_rm_securitygroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{resource_group_name}}-ext-nsg"
+    purge_rules: no
+    rules:
+      - name: 'AllowHTTP'
+        protocol: Tcp
+        source_address_prefix: '{{restrictedSrcAddress}}'
+        destination_port_range: 80
+        access: Allow
+        priority: 101
+        direction: Inbound
 
-      - name: Create a VIP
-        bigip_virtual_server:
-            description: "foo-vip"
-            destination: "10.128.10.21"
-            password: "{{ BIGIPadminPassword }}"
-            name: "service_2_vs"
-            pool: "service_2_pl"
-            port: "80"
-            server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-            snat: "Automap"
-            user: "{{ BIGIPadminUsername }}"
-            all_profiles:
-                - "http"
-                - "clientssl"
-            validate_certs: no
-        delegate_to: localhost
+- name: Deploy Service 2 (iApp Build Simple Application) from f5.http iApp
+  delegate_to: localhost
+  uri:
+    body: "{{ lookup('file','service_2.json') | to_json }}"
+    body_format: json
+    headers:
+      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+    method: POST
+    status_code: 200
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp"
+    validate_certs: no
 
-      - name: Webhook Notification to Teams for Build
-        delegate_to: localhost
-        uri:
-          body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 2 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 2 Button** to be taken to the Service 2 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 2", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}1.{{location}}.cloudapp.azure.com" }] }] }
-          body_format: json
-          method: POST
-          status_code: 200
-          url: "{{teams_webhook}}"
-          validate_certs: no
+- name: Webhook Notification to Teams for Build
+  delegate_to: localhost
+  uri:
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 2 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 2 Button** to be taken to the Service 2 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 2", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}1.{{location}}.cloudapp.azure.com" }] }] }
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: no
