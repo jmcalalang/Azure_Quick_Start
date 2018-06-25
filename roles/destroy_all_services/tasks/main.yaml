@@ -41,7 +41,7 @@
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
     method: DELETE
     status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp/Service_2"
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp"
     validate_certs: no
 
 - name: Webhook Notification to Teams for Build
