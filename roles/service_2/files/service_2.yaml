@@ -51,7 +51,7 @@ tables:
     columns:
     - name
     rows:
-    - - {{resource_group_name}}1.{{location}}.cloudapp.azure.com
+    - - service_2.cloudapp.azure.com
   pool__members:
     columns:
     - addr
