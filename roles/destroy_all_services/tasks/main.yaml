@@ -35,14 +35,24 @@
     validate_certs: no
 
 - name: Destroy Service 2 from f5.http iApp
-  delegate_to: localhost
-  uri:
-    headers:
-      X-F5-Auth-Token: "{{ bigip_auth_token }}"
-    method: DELETE
-    status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp/Service_2"
+  bigip_iapp_service:
+    name: Service_2
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    state: absent
+    user: "{{BIGIPadminUsername}}"
     validate_certs: no
+  delegate_to: localhost
+
+#- name: Destroy Service 2 from f5.http iApp
+#  delegate_to: localhost
+#  uri:
+#    headers:
+#      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+#    method: DELETE
+#    status_code: 200
+#    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp/Service_2"
+#    validate_certs: no
 
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
