@@ -9,9 +9,8 @@ vars:
   client__tcp_wan_opt: "/#create_new#"
   monitor__frequency: "5"
   monitor__http_method: GET
-  monitor__monitor: "/#create_new#"
+  monitor__monitor: "/Common/http"
   monitor__response: 200 OK
-  monitor__uri: "/monitor.php"
   net__client_mode: wan
   net__same_subnet: "yes"
   net__server_mode: lan
