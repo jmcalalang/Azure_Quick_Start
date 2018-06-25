@@ -37,11 +37,7 @@ vars:
   ssl__cert: "/Common/default.crt"
   ssl__client_ssl_profile: "/#create_new#"
   ssl__key: "/Common/default.key"
-  ssl__mode: client_ssl_server_ssl
-  ssl__server_ssl_profile: "/#default#"
-  ssl__use_chain_cert: "/Common/ca-bundle.crt"
-  ssl_encryption_questions__advanced: "yes"
-  ssl_encryption_questions__help: hide
+  ssl__mode: client_ssl
   stats__analytics: "/#do_not_use#"
   stats__request_logging: "/#do_not_use#"
   stats__tcp_analytics: "/#do_not_use#"
@@ -53,7 +49,7 @@ tables:
     columns:
     - name
     rows:
-    - - www.f5labs.one
+    - - " {{resource_group_name}}1.{{location}}.cloudapp.azure.com "
   pool__members:
     columns:
     - addr
