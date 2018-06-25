@@ -9,20 +9,20 @@
     validate_certs: no
   delegate_to: localhost
 
-#- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
-#  delegate_to: localhost
-#  uri:
-#    body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
-#    body_format: json
-#    method: POST
-#    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
-#    status_code: 200
-#    validate_certs: no
-#  register: bigip_auth_response
+- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  delegate_to: localhost
+  uri:
+    body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
+    body_format: json
+    method: POST
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    status_code: 200
+    validate_certs: no
+  register: bigip_auth_response
 
-#- name: Assign Auth Token to Variable
-#  set_fact:
-#    bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
+- name: Assign Auth Token to Variable
+  set_fact:
+    bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
 - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
   azure_rm_securitygroup:
@@ -43,29 +43,16 @@
         direction: Inbound
 
 - name: Deploy Service 2 (iApp Build Simple Application) from f5.http iApp
-  bigip_iapp_service:
-    name: Service_2
-    template: f5.http
-    body: "{{ lookup('file', 'service_2.json') }}"
-    password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    state: present
-    user: "{{BIGIPadminUsername}}"
-    validate_certs: no
-    partition: "Service_2"
   delegate_to: localhost
-
-#- name: Deploy Service 2 (iApp Build Simple Application) from f5.http iApp
-#  delegate_to: localhost
-#  uri:
-#    body: "{{ lookup('file','service_2.json') | to_json }}"
-#    body_format: json
-#    headers:
-#      X-F5-Auth-Token: "{{ bigip_auth_token }}"
-#    method: POST
-#    status_code: 200
-#    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp"
-#    validate_certs: no
+  uri:
+    body: "{{ (lookup('file','service_2.yaml') | from_yaml) }}"
+    body_format: json
+    headers:
+      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+    method: POST
+    status_code: 200
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp"
+    validate_certs: no
 
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
