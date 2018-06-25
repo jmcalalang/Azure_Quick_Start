@@ -68,7 +68,7 @@
     name: "{{resource_group_name}}-ext-nsg"
     purge_rules: no
     rules:
-      - name: 'AllowHTTPs'
+      - name: 'AllowHTTPS'
         protocol: Tcp
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 443
