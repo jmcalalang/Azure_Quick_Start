@@ -1,4 +1,5 @@
 # Destroy a resource group
+
 - name: Delete "{{resource_group_name}}" Resource Group
   azure_rm_resourcegroup:
     tenant: "{{ tenantId }}"
