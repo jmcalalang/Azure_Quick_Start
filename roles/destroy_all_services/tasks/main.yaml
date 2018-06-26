@@ -66,6 +66,16 @@
     partition: Service1
   delegate_to: localhost
 
+- name: Destroy Common node 10.128.20.4
+  bigip_node:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
+    state: absent
+    partition: Common
+    name: 10.128.20.4
+  delegate_to: localhost
+
 - name: Remove Service 1 partition "Service1"
   bigip_partition:
     name: Service1
