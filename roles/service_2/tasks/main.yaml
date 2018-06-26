@@ -49,10 +49,10 @@
         priority: 101
         direction: Inbound
 
-- name: Provision APM at "nominal" level
+- name: Provision ASM at "nominal" level
   bigip_provision:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    module: apm
+    module: asm
     level: nominal
     password: "{{BIGIPadminPassword}}"
     user: "{{BIGIPadminUsername}}"
