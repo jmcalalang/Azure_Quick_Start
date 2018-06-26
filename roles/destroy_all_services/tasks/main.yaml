@@ -34,17 +34,6 @@
     url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Destroy Common node 10.128.20.4 leftover from AS3
-  bigip_node:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{BIGIPadminUsername}}"
-    password: "{{BIGIPadminPassword}}"
-    validate_certs: false
-    state: absent
-    partition: Common
-    name: 10.128.20.4
-  delegate_to: localhost
-
 - name: Destroy Service 2 from f5.http iApp on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_iapp_service:
     name: Service_2
@@ -53,6 +42,17 @@
     state: absent
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
+  delegate_to: localhost
+
+- name: Destroy Common node 10.128.20.4 leftover from AS3 and iApp's
+  bigip_node:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
+    validate_certs: false
+    state: absent
+    partition: Common
+    name: 10.128.20.4
   delegate_to: localhost
 
 - name: Destroy Service 1 virtual server "service_1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
