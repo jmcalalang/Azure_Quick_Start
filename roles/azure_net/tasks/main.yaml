@@ -1,4 +1,4 @@
-# Create a resource group
+# Create an Azure Resource Group
 
 - name: Create {{resource_group_name}} Resource Group
   azure_rm_resourcegroup:
@@ -53,7 +53,7 @@
     address_prefix_cidr: "10.128.20.0/24"
     virtual_network_name: "{{virtual_network_name}}"
 
-- name: Webhook Notification to Teams for Build
+- name: Webhook Notification to Teams for Build of Resource Group {{resource_group_name}}
   delegate_to: localhost
   uri:
     body: "{\"text\": \"Resource Group {{resource_group_name}} was created in the {{location}} region!\"}"

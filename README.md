@@ -51,14 +51,14 @@ If you are running this solution from your own environment, you should read the 
  - **run_ansible_bigip_single_3_nic**
  - **run_ansible_services_3**
 
-**run_ansible_services_1** - Create or update Service 1; Imperative Build Simple Application
+**run_ansible_services_1** - Create or update Service 1; Imperative Build Simple HTTP Application
 
-**run_ansible_services_2** - Create or update Service 2; f5.http iapp Build Simple Application
+**run_ansible_services_2** - Create or update Service 2; f5.http iapp Build Advanced HTTPS/WAF Application
 
-**run_ansible_services_3** - Create or update Service 3; AS3 Build Simple Application (HTTP)
+**run_ansible_services_3** - Create or update Service 3; AS3 Build Simple HTTP Application
 
-**run_ansible_services_4** - Create or update Service 4; AS3 Build WAF Application (HTTPs and WAF)
+**run_ansible_services_4** - Create or update Service 4; AS3 Build Advanced HTTPS/WAF Application
 
-**run_ansible_services_5** - Create or update Service 5; AS3 Build APM Application (APM Policy)
+**run_ansible_services_5** - Create or update Service 5; AS3 Build Advanced HTTPS/APM Application
 
 **run_ansible_teams_webhook_test** - Test a webhook call for Microsoft Teams

@@ -51,7 +51,7 @@
           vnetResourceGroupName:
             value: "{{vnetResourceGroupName}}"
 
-    - name: Webhook Notification to Teams for Build
+    - name: Webhook Notification to Teams for Build of BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com
       delegate_to: localhost
       uri:
         body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "New BIG-IP Environment Created in Resource Group {{resource_group_name}}", "text": "Click **BIG-IP Button** to be taken to the BIG-IP!", "potentialAction": [{ "@type": "OpenUri", "name": "BIG-IP ", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com" }] }] }

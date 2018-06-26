@@ -1,4 +1,4 @@
-# Create or update a Service 5, AS3 Build Advanced HTTPS/APM Application
+# Create or update Service 5; AS3 Build Advanced HTTPS/APM Application
 
 # THIS SERVICE IS UNDER CONSTRUCTION APM DOESNT HAVE AN ANSIBLE UPLOAD MODULE
 
@@ -76,7 +76,7 @@
         priority: 101
         direction: Inbound
 
-- name: Deploy Service 5 (AS3 Build HTTPS/APM Application) from AS3
+- name: Create or update Service 5; AS3 Build Advanced HTTPS/APM Application
   delegate_to: localhost
   uri:
     body: "{{ lookup('file','service_5.json') | to_json }}"
@@ -88,7 +88,7 @@
     url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Webhook Notification to Teams for Build
+- name: Webhook Notification to Teams for Build of Service 5
   delegate_to: localhost
   uri:
     body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 5 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 5 Button** to be taken to the Service 4 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 5", "targets": [{ "os": "default", "uri": "https://{{resource_group_name}}4.{{location}}.cloudapp.azure.com" }] }] }

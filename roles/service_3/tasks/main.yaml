@@ -1,4 +1,4 @@
-# Create or update a Service 3, AS3 Build Simple HTTP Application
+# Create or update Service 3; AS3 Build Simple HTTP Application
 
 - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
   bigip_wait:
@@ -52,7 +52,7 @@
         priority: 100
         direction: Inbound
 
-- name: Deploy Service 3 (AS3 Build Simple HTTP Application) from AS3
+- name: Create or update Service 3; AS3 Build Simple HTTP Application
   delegate_to: localhost
   uri:
     body: "{{ lookup('file','service_3.json') | to_json }}"
@@ -64,7 +64,7 @@
     url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Webhook Notification to Teams for Build
+- name: Webhook Notification to Teams for Build of Service 3
   delegate_to: localhost
   uri:
     body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 3 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 3 Button** to be taken to the Service 3 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 3", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}2.{{location}}.cloudapp.azure.com" }] }] }
