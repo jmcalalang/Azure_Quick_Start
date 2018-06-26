@@ -71,6 +71,7 @@
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
+    validate_certs: false    
     state: absent
     partition: Common
     name: 10.128.20.4
