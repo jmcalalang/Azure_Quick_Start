@@ -44,7 +44,7 @@
     validate_certs: no
   delegate_to: localhost
 
-- name: Destroy virtual server service_1_vs on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service 1 virtual server "service_1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
@@ -55,7 +55,7 @@
     partition: Service1
   delegate_to: localhost
 
-- name: Destroy pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service 1 pool "service_1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
@@ -66,7 +66,7 @@
     partition: Service1
   delegate_to: localhost
 
-- name: Remove partition "Service1" using the default route domain
+- name: Remove Service 1 partition "Service1"
   bigip_partition:
     name: Service1
     password: "{{BIGIPadminPassword}}"
