@@ -101,7 +101,7 @@
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"All AS3 Declarations on BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com were destroyed!\"}"
+    body: "{\"text\": \"All Services on BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com have been destroyed!\"}"
     body_format: json
     method: POST
     status_code: 200

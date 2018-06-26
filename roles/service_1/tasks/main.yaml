@@ -16,10 +16,10 @@
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: false
-    state: present    
+    state: present
   delegate_to: localhost
 
-- name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Create pool "service_1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
@@ -35,7 +35,7 @@
       - /Common/http
   delegate_to: localhost
 
-- name: Add pool member to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Add pool member "10.128.20.4" to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool_member:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
@@ -71,7 +71,7 @@
     subscription_id: "{{ subscriptionId }}"
     tenant: "{{ tenantId }}"
 
-- name: Add virtual server for Service 1 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Add virtual server "service_1_vs" for Service 1 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"

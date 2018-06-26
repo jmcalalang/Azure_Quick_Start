@@ -76,7 +76,7 @@
         priority: 101
         direction: Inbound
 
-- name: Deploy Service 5 (AS3 Build APM Application) from AS3
+- name: Deploy Service 5 (AS3 Build HTTPS/APM Application) from AS3
   delegate_to: localhost
   uri:
     body: "{{ lookup('file','service_5.json') | to_json }}"

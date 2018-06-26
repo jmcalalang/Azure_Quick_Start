@@ -49,7 +49,7 @@
         priority: 101
         direction: Inbound
 
-- name: Deploy Service 2 (iApp Build Simple Application) from f5.http iApp
+- name: Deploy Service 2 (Build Simple HTTPs Application) from f5.http iApp
   delegate_to: localhost
   uri:
     body: "{{ (lookup('file','service_2.yaml') | from_yaml) }}"
