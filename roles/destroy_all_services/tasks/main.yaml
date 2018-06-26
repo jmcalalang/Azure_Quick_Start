@@ -1,4 +1,4 @@
-# Destroy all iapp and AS3 Services from this solution
+# Destroy all Services in this solution
 
 - name: Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration
   bigip_wait:
@@ -24,7 +24,7 @@
   set_fact:
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
-- name: Destroy All Services in AS3
+- name: Destroy All Services in AS3 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     headers:
@@ -34,7 +34,7 @@
     url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Destroy Service 2 from f5.http iApp
+- name: Destroy Service 2 from f5.http iApp on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_iapp_service:
     name: Service_2
     password: "{{BIGIPadminPassword}}"
@@ -44,15 +44,37 @@
     validate_certs: no
   delegate_to: localhost
 
-#- name: Destroy Service 2 from f5.http iApp
-#  delegate_to: localhost
-#  uri:
-#    headers:
-#      X-F5-Auth-Token: "{{ bigip_auth_token }}"
-#    method: DELETE
-#    status_code: 200
-#    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/tm/cloud/services/iapp/Service_2"
-#    validate_certs: no
+- name: Destroy virtual server service_1_vs on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_virtual_server:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{ BIGIPadminUsername }}"
+    password: "{{ BIGIPadminPassword }}"
+    validate_certs: false
+    state: absent
+    name: service_1_vs
+    partition: Service1
+  delegate_to: localhost
+
+- name: Destroy pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_pool:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    password: "{{BIGIPadminPassword}}"
+    validate_certs: false
+    state: absent
+    name: service_1_pl
+    partition: Service1
+  delegate_to: localhost
+
+- name: Remove partition "Service1" using the default route domain
+  bigip_partition:
+    name: Service1
+    password: "{{BIGIPadminPassword}}"
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{BIGIPadminUsername}}"
+    validate_certs: false
+    state: absent
+  delegate_to: localhost
 
 - name: Webhook Notification to Teams for Build
   delegate_to: localhost

@@ -16,6 +16,7 @@
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: false
+    state: present    
   delegate_to: localhost
 
 - name: Create a pool on {{resource_group_name}}.{{location}}.cloudapp.azure.com
