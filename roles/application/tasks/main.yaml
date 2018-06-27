@@ -46,7 +46,7 @@
           - name: 'AllowHTTPS'
             protocol: Tcp
             source_address_prefix: '{{restrictedSrcAddress}}'
-            destination_port_range: "443-447"
+            destination_port_range: "443-444"
             access: Allow
             priority: 101
             direction: Inbound

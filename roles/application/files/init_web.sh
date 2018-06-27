@@ -3,9 +3,12 @@
 ##### Install Artiom's awesome Demo App #####
 # install Docker
 sudo apt-get -y install docker.io
-# Spin up Docker Instance
-sudo docker run -dit -p 80:8080 -p 443:8443 f5devcentral/f5-hello-world
-sudo docker run -dit -p 81:8080 -p 444:8443 f5devcentral/f5-hello-world
-sudo docker run -dit -p 82:8080 -p 445:8443 f5devcentral/f5-hello-world
-sudo docker run -dit -p 83:8080 -p 446:8443 f5devcentral/f5-hello-world
-sudo docker run -dit -p 84:8080 -p 447:8443 f5devcentral/f5-hello-world
+# Spin up Docker Instances
+
+# F5-Hello-World for HTTP Sites:
+docker run --restart=unless-stopped --name=f5-hello-world-blue -dit -p 80:8080 -p 443:8443 -e NODE='Blue' f5devcentral/f5-hello-world
+docker run --restart=unless-stopped --name=f5-hello-world-green -dit -p 82:8080 -p 444:8443 -e NODE='Green' f5devcentral/f5-hello-world
+# DVWA for f5.http iApp with WAF:
+docker run --restart=unless-stopped --name=dvwa -d -p 81:80 infoslack/dvwa
+# Hackazon for AS3 with WAF:
+docker run --restart=unless-stopped --name=hackazon -d -p 83:80 mutzel/all-in-one-hackazon:postinstall supervisord -n
