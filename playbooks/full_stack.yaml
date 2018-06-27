@@ -7,4 +7,5 @@
     - bigip_single_3_nic
     - service_3
   vars_files:
+    - {{ role_path }}/vars/parameters.yaml
     - /home/snops/f5-rs-azure/parent_parameters.yaml
