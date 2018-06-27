@@ -2,7 +2,7 @@
 
 ## This repository is used in demoing F5 and Azure Deployment Solutions
 
-Each solution is broken out into individual components to be run alone, however they can be stitched together as needed with Ansible Roles, a full demo can be built using the **run_ansible_full_stack.yaml** playbook. This solution is built around BIG-IQ as a License Manager(LM) server, if you are not using BIG-IQ as a license server you may need to modify this solution.
+Each solution is broken out into individual components to be run alone, however they can be stitched together as needed with Ansible Roles, a full demo can be built using the **run_ansible_full_stack.yml** playbook. This solution is built around BIG-IQ as a License Manager(LM) server, if you are not using BIG-IQ as a license server you may need to modify this solution.
 
 
 This solution is ideally used in conjunction with the F5 Resource Solutions, there are different projects on-going so please refer to the index for things that can be shown.
@@ -11,9 +11,9 @@ I highly recommend using a docker container created from F5 engineer Yossi: `doc
 
 ### Custom Parameters
 
-The **parent_parameters.yaml** located at the root of the solutions repository contains variables used throughout the solution.
+The **parent_parameters.yml** located at the root of the solutions repository contains variables used throughout the solution.
 
-The password to **parent_parameters.yaml** is `password`
+The password to **parent_parameters.yml** is `password`
 
 There are some main variables used in the solution (including your Service Principal AzureAD credentials), these are used as repeated variables and you should make sure your **resource_group_name** is unique to the **location** you use this deployment.
 

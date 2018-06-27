@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook playbooks/service_2.yaml --ask-vault-pass
+ansible-playbook playbooks/service_2.yml --ask-vault-pass

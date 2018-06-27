@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook playbooks/application.yaml --ask-vault-pass
+ansible-playbook playbooks/application.yml --ask-vault-pass
