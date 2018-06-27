@@ -41,7 +41,7 @@ If you are running this solution from your own environment, you should read the 
 
 **run_ansible_bigip_single_3_nic** - This solution will deploy an F5 ARM template building a single BIG-IP with 3 NIC's (This is the Default Deployment)
 
-**run_ansible_destroy_all_services** - This solution will destroy all AS3 services deployed on your BIG-IP
+**run_ansible_destroy_all_services** - This solution will destroy all services (Service 1-5) deployed on your BIG-IP
 
 **run_ansible_destroy_environment** - This solution will destroy your Resource Group, this is using the **force** option so all objects will be destroyed without confirmation
 
