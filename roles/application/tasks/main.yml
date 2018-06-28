@@ -38,14 +38,14 @@
       rules:
           - name: 'AllowHTTP'
             protocol: Tcp
-            source_address_prefix: '{{restrictedSrcAddress}}'
+            source_address_prefix: 'VirtualNetwork'
             destination_port_range: "80-84"
             access: Allow
             priority: 100
             direction: Inbound
           - name: 'AllowHTTPS'
             protocol: Tcp
-            source_address_prefix: '{{restrictedSrcAddress}}'
+            source_address_prefix: 'VirtualNetwork'
             destination_port_range: "443-444"
             access: Allow
             priority: 101
