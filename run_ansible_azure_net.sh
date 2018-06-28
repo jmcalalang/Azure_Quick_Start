@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook playbooks/azure_net.yml --ask-vault-pass
+ansible-playbook -v playbooks/azure_net.yml --ask-vault-pass
