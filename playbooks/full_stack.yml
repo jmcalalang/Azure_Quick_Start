@@ -3,7 +3,7 @@
   hosts: localhost
   roles:
     - azure_net
-    - application
+    - server
     - bigip_single_3_nic
     - service_3
   vars_files:

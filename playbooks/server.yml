@@ -2,6 +2,6 @@
 -
   hosts: localhost
   roles:
-    - application
+    - server
   vars_files:
     - /home/snops/f5-rs-azure/parent_parameters.yml

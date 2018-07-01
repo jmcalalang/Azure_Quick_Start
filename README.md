@@ -31,7 +31,7 @@ If you are running this solution from your own environment, you should read the 
 
 ### Definition of Solutions:
 
-**run_ansible_application** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
+**run_ansible_server** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
 
 **run_ansible_azure_net** - This solution will build a Resource Group, Virtual Network and 3 subnets in Azure, the network is based of the IP ranges from the F5 vLab
 
@@ -47,7 +47,7 @@ If you are running this solution from your own environment, you should read the 
 
 **run_ansible_full_stack** - This solution will deploy a full stack environment. It is by default setup to execute the the below Roles in order, this can be modified in the playbook and *parent_parameters*.
  - **run_ansible_azure_net**
- - **run_ansible_application**
+ - **run_ansible_server**
  - **run_ansible_bigip_single_3_nic**
  - **run_ansible_services_3**
 

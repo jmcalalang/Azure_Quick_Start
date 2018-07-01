@@ -14,22 +14,32 @@
     location: "{{location}}"
     state: present
     parameters:
-      adminPassword:
+      adminPasswordOrKey:
         value: "{{BIGIPadminPassword}}"
       adminUsername:
         value: "{{BIGIPadminUsername}}"
       allowUsageAnalytics:
         value: "{{allowUsageAnalytics}}"
+      authenticationType:
+        value: "password"
+      avSetChoice:
+        value: "CREATE_NEW"
       bigIpVersion:
         value: "{{bigIpVersion}}"
-      bigIqLicenseHost:
+      bigIqAddress:
         value: "{{bigIqLicenseHost}}"
-      bigIqLicensePassword:
+      bigIqPassword:
         value: "{{bigIqLicensePassword}}"
-      bigIqLicensePool:
+      bigIqLicensePoolName:
         value: "{{bigIqLicensePool}}"
-      bigIqLicenseUsername:
+      bigIqLicenseSkuKeyword1:
+        value: "{{bigIqLicenseSkuKeyword1}}"
+      bigIqLicenseUnitOfMeasure:
+        value: "{{bigIqLicenseUnitOfMeasure}}"
+      bigIqUsername:
         value: "{{bigIqLicenseUsername}}"
+      customImage:
+        value: "{{customImage}}"
       dnsLabel:
         value: "{{dnsLabel}}"
       externalIpAddressRangeStart:
