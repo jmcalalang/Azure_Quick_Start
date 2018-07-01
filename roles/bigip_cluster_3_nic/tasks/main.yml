@@ -84,7 +84,6 @@
         value: "{{vnetName}}"
       vnetResourceGroupName:
         value: "{{vnetResourceGroupName}}"
-
 -
   name: "Webhook Notification to Teams for Build of BIG-IP Cluster {{resource_group_name}}-0.{{location}}.cloudapp.azure.com & {{resource_group_name}}-1.{{location}}.cloudapp.azure.com"
   delegate_to: localhost
