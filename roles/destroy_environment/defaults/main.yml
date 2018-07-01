@@ -1,35 +1,5 @@
-# azure_net specific parameters
+# destroy_environment specific parameters
 
 # use parent_parameters.yml for secure variables (ansible-vault)
 
 #module parameters
-allowUsageAnalytics: "Yes"
-applicationbuildscript: "https://raw.githubusercontent.com/jmcalalang/f5-rs-azure/master/roles/application/files/init_web.sh"
-application_storage_account: "{{application_server_name}}stract"
-bigIpVersion: "latest"
-# bigip arm templates
-# cluster-api 3 nic: https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/v5.0.0.0/supported/cluster/failover-api/existing_stack/BIGIQ/azuredeploy.json
-# single 3 nic: https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/v5.0.0.0/supported/standalone/3nic/existing_stack/BIGIQ/azuredeploy.json
-# single 1 nic: https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/v5.0.0.0/supported/standalone/1nic/existing_stack/BIGIQ/azuredeploy.json
-bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/v5.0.0.0/supported/standalone/3nic/existing_stack/BIGIQ/azuredeploy.json"
-dnsLabel: "{{resource_group_name}}"
-externalIpAddressRangeStart: "10.128.10.25"
-externalIpSelfAddressRangeStart: "10.128.10.200"
-externalSubnetName: "external"
-imageName: "Best"
-instanceName: "f5vm01"
-instanceType: "Standard_DS3_v2"
-internalIpAddress: "10.128.20.100"
-internalIpAddressRangeStart: "10.128.20.200"
-internalSubnetName: "internal"
-managedRoutes: "NOT_SPECIFIED"
-mgmtIpAddress: "10.128.1.100"
-mgmtIpAddressRangeStart: "10.128.1.200"
-mgmtSubnetName: "management"
-ntpServer: "0.pool.ntp.org"
-restrictedSrcAddress: "*"
-timeZone: "UTC"
-virtual_network_name: "{{resource_group_name}}-virtual-network"
-vnetName: "{{resource_group_name}}-virtual-network"
-vnetResourceGroupName: "{{resource_group_name}}"
-webSubnetId: "internal"
