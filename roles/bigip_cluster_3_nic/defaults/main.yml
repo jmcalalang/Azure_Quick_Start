@@ -4,6 +4,7 @@
 
 #module parameters
 allowUsageAnalytics: "Yes"
+#additionalNicLocation: "OPTIONAL"
 bigIpVersion: "latest"
 bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/failover/same-net/via-api/n-nic/existing-stack/bigiq/azuredeploy.json"
 customImage: "OPTIONAL"

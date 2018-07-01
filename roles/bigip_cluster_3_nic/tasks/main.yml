@@ -18,8 +18,8 @@
         value: "{{BIGIPadminPassword}}"
       adminUsername:
         value: "{{BIGIPadminUsername}}"
-      additionalNicLocation:
-        value: "OPTIONAL"
+#      additionalNicLocation:
+#        value: "{{additionalNicLocation}}"
       allowUsageAnalytics:
         value: "{{allowUsageAnalytics}}"
       authenticationType:
