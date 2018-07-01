@@ -15,3 +15,11 @@ iControl LX Requirements:
   rpm
  Modules:
   BIGIP iControl LX
+
+
+
+# I have a problem swapping between deployments.
+## this needs to be addressed before the helper sript
+  - Network names are hardcoded
+  - dns names for deployed instances
+  
