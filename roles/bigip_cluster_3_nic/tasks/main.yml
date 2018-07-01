@@ -7,23 +7,39 @@
   azure_rm_deployment:
     client_id: "{{ clientId }}"
     location: "{{location}}"
+    resource_group_name: "{{resource_group_name}}"
+    secret: "{{ servicePrincipalSecret }}"
+    state: present
+    subscription_id: "{{ subscriptionId }}"
+    template_link: "{{bigip_template_link}}"
+    tenant: "{{ tenantId }}"
     parameters:
-      adminPassword:
+      adminPasswordOrKey:
         value: "{{BIGIPadminPassword}}"
       adminUsername:
         value: "{{BIGIPadminUsername}}"
+      additionalNicLocation:
+        value: "OPTIONAL"
       allowUsageAnalytics:
         value: "{{allowUsageAnalytics}}"
+      authenticationType:
+        value: "password"
       bigIpVersion:
         value: "{{bigIpVersion}}"
-      bigIqLicenseHost:
+      bigIqAddress:
         value: "{{bigIqLicenseHost}}"
-      bigIqLicensePassword:
+      bigIqPassword:
         value: "{{bigIqLicensePassword}}"
-      bigIqLicensePool:
+      bigIqLicensePoolName:
         value: "{{bigIqLicensePool}}"
-      bigIqLicenseUsername:
+      bigIqLicenseSkuKeyword1:
+        value: "{{bigIqLicenseSkuKeyword1}}"
+      bigIqLicenseUnitOfMeasure:
+        value: "{{bigIqLicenseUnitOfMeasure}}"
+      bigIqUsername:
         value: "{{bigIqLicenseUsername}}"
+      customImage:
+        value: "{{customImage}}"
       clientId:
         value: "{{clientId}}"
       dnsLabel:
@@ -54,6 +70,8 @@
         value: "{{ntpServer}}"
       numberOfExternalIps:
         value: 5
+      numberOfAdditionalNics:
+        value: "{{numberOfAdditionalNics}}"
       restrictedSrcAddress:
         value: "{{restrictedSrcAddress}}"
       servicePrincipalSecret:
@@ -66,12 +84,7 @@
         value: "{{vnetName}}"
       vnetResourceGroupName:
         value: "{{vnetResourceGroupName}}"
-    resource_group_name: "{{resource_group_name}}"
-    secret: "{{ servicePrincipalSecret }}"
-    state: present
-    subscription_id: "{{ subscriptionId }}"
-    template_link: "{{bigip_template_link}}"
-    tenant: "{{ tenantId }}"
+
 -
   name: "Webhook Notification to Teams for Build of BIG-IP Cluster {{resource_group_name}}-0.{{location}}.cloudapp.azure.com & {{resource_group_name}}-1.{{location}}.cloudapp.azure.com"
   delegate_to: localhost

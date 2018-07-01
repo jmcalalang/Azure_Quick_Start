@@ -11,7 +11,7 @@
     name: "{{application_storage_account}}"
     account_type: Standard_LRS
 
-- name: Create Server {{application_server_name}} NIC in "{{resource_group_name}}"
+- name: Create Server {{application_server_name}} NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
