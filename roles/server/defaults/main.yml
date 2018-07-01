@@ -5,5 +5,6 @@
 #module parameters
 applicationbuildscript: "https://raw.githubusercontent.com/jmcalalang/f5-rs-azure/master/roles/application/files/init_web.sh"
 application_storage_account: "{{application_server_name}}stract"
+internalSubnetName: "internal"
 restrictedSrcAddress: "*"
 virtual_network_name: "{{resource_group_name}}-virtual-network"

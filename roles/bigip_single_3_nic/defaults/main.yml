@@ -4,7 +4,6 @@
 
 #module parameters
 allowUsageAnalytics: "Yes"
-
 bigIpVersion: "latest"
 bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/standalone/3nic/existing-stack/bigiq/azuredeploy.json"
 customImage: "OPTIONAL"
