@@ -22,6 +22,8 @@ iControl LX Requirements:
 ## this needs to be addressed before the helper sript
   - Network names are hardcoded
   - dns names for deployed instances
+  - single nic port for mgmt is 8443
+
 
 FQDN for AS3
 "members": [
