@@ -1,0 +1,30 @@
+# bigip_cluster_3_nic specific parameters
+
+# use parent_parameters.yml for secure variables (ansible-vault)
+
+#module parameters
+allowUsageAnalytics: "Yes"
+#additionalNicLocation: "OPTIONAL"
+bigIpVersion: "latest"
+bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/failover/same-net/via-api/n-nic/existing-stack/bigiq/azuredeploy.json"
+customImage: "OPTIONAL"
+dnsLabel: "{{resource_group_name}}"
+externalIpAddressRangeStart: "10.128.10.25"
+externalIpSelfAddressRangeStart: "10.128.10.200"
+externalSubnetName: "external"
+imageName: "Best"
+instanceName: "f5vm01"
+instanceType: "Standard_DS3_v2"
+internalIpAddress: "10.128.20.100"
+internalIpAddressRangeStart: "10.128.20.200"
+internalSubnetName: "internal"
+managedRoutes: "NOT_SPECIFIED"
+mgmtIpAddress: "10.128.1.100"
+mgmtIpAddressRangeStart: "10.128.1.200"
+mgmtSubnetName: "management"
+numberOfAdditionalNics: 0
+ntpServer: "0.pool.ntp.org"
+restrictedSrcAddress: "*"
+timeZone: "UTC"
+vnetName: "{{resource_group_name}}-virtual-network"
+vnetResourceGroupName: "{{resource_group_name}}"

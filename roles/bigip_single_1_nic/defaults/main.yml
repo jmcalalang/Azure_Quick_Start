@@ -1,0 +1,20 @@
+# bigip_single_1_nic specific parameters
+
+# use parent_parameters.yml for secure variables (ansible-vault)
+
+#module parameters
+allowUsageAnalytics: "Yes"
+bigIpVersion: "latest"
+bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/standalone/1nic/existing-stack/bigiq/azuredeploy.json"
+customImage: "OPTIONAL"
+dnsLabel: "{{resource_group_name}}"
+imageName: "Best"
+instanceName: "f5vm01"
+instanceType: "Standard_DS3_v2"
+mgmtIpAddress: "10.128.1.100"
+mgmtSubnetName: "management"
+ntpServer: "0.pool.ntp.org"
+restrictedSrcAddress: "*"
+timeZone: "UTC"
+vnetName: "{{resource_group_name}}-virtual-network"
+vnetResourceGroupName: "{{resource_group_name}}"

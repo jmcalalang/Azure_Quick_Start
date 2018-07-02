@@ -1,0 +1,100 @@
+# Create or update a template deployment based on uris and template link
+# for a single BIGIP with 3-nic's
+
+---
+-
+  name: "Run F5 ARM Template to build a single BIG-IP with 3 NICs"
+  azure_rm_deployment:
+    subscription_id: "{{ subscriptionId }}"
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    template_link: "{{bigip_template_link}}"
+    resource_group_name: "{{resource_group_name}}"
+    location: "{{location}}"
+    state: present
+    parameters:
+      adminPasswordOrKey:
+        value: "{{BIGIPadminPassword}}"
+      adminUsername:
+        value: "{{BIGIPadminUsername}}"
+      allowUsageAnalytics:
+        value: "{{allowUsageAnalytics}}"
+      authenticationType:
+        value: "password"
+      avSetChoice:
+        value: "CREATE_NEW"
+      bigIpVersion:
+        value: "{{bigIpVersion}}"
+      bigIqAddress:
+        value: "{{bigIqLicenseHost}}"
+      bigIqPassword:
+        value: "{{bigIqLicensePassword}}"
+      bigIqLicensePoolName:
+        value: "{{bigIqLicensePool}}"
+      bigIqLicenseSkuKeyword1:
+        value: "{{bigIqLicenseSkuKeyword1}}"
+      bigIqLicenseUnitOfMeasure:
+        value: "{{bigIqLicenseUnitOfMeasure}}"
+      bigIqUsername:
+        value: "{{bigIqLicenseUsername}}"
+      customImage:
+        value: "{{customImage}}"
+      dnsLabel:
+        value: "{{dnsLabel}}"
+      externalIpAddressRangeStart:
+        value: "{{externalIpAddressRangeStart}}"
+      externalSubnetName:
+        value: "{{externalSubnetName}}"
+      imageName:
+        value: "{{imageName}}"
+      instanceName:
+        value: "{{instanceName}}"
+      instanceType:
+        value: "{{instanceType}}"
+      internalIpAddress:
+        value: "{{internalIpAddress}}"
+      internalSubnetName:
+        value: "{{internalSubnetName}}"
+      mgmtIpAddress:
+        value: "{{mgmtIpAddress}}"
+      mgmtSubnetName:
+        value: "{{mgmtSubnetName}}"
+      ntpServer:
+        value: "{{ntpServer}}"
+      numberOfExternalIps:
+        value: 5
+      restrictedSrcAddress:
+        value: "{{restrictedSrcAddress}}"
+      timeZone:
+        value: "{{timeZone}}"
+      vnetName:
+        value: "{{vnetName}}"
+      vnetResourceGroupName:
+        value: "{{vnetResourceGroupName}}"
+-
+  name: "Webhook Notification to Teams for Build of BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com"
+  delegate_to: localhost
+  uri:
+    body:
+      ? "@context"
+      : "http://schema.org/extensions"
+      ? "@type"
+      : MessageCard
+      potentialAction:
+        -
+          ? "@type"
+          : OpenUri
+          name: "BIG-IP "
+          targets:
+            -
+              os: default
+              uri: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+      text: "Click **BIG-IP Button** to be taken to the BIG-IP!"
+      themeColor: 0072C6
+      title: "New BIG-IP Environment Created in Resource Group {{resource_group_name}}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: false

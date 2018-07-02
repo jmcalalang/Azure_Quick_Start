@@ -15,3 +15,21 @@ iControl LX Requirements:
   rpm
  Modules:
   BIGIP iControl LX
+
+
+
+# I have a problem swapping between deployments.
+## this needs to be addressed before the helper sript
+  - Network names are hardcoded
+  - dns names for deployed instances
+
+FQDN for AS3
+"members": [
+ {
+   "servicePort": 443,
+   "addressDiscovery": "fqdn",
+   "hostname": "www.google.com"
+ }
+]
+
+There is a second declaration waiting in service_4 for ASM from URI

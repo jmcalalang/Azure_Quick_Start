@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook playbooks/full_stack.yaml --ask-vault-pass
+ansible-playbook playbooks/full_stack.yml --ask-vault-pass
