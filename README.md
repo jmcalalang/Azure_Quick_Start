@@ -25,6 +25,10 @@ region for deployment
 
 **location**: "westus"
 
+### Teams Incoming Webhook
+
+This solution can use Microsoft Teams as an endpoint for Webhook notifications. This will require the creation of a Teams Connector: https://docs.microsoft.com/en-us/microsoftteams/platform/concepts/connectors#creating-messages-through-office-365-connectors
+
 ### To Run this Solution
 
 If you are running this solution from your own environment, you should read the **dependency notes** from this repository. If you are deploying this with the **f5-rs-container** after launching the container `git clone https://www.github.com/jmcalalang/f5-rs-azure`. Change directory into the `f5-rs-azure` folder and update `parent_parameters` for your deployment.
