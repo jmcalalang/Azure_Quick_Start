@@ -1,0 +1,1795 @@
+#TMSH-VERSION: 12.0.0
+
+sys application template /Common/DHCP_for_APM {
+    actions {
+        definition {
+            html-help {
+                <h2>DHCP for APM VPN/Network Access</h2>
+                <h4>By Mark Quevedo, f5 SSE</h4>
+<h3>Precis</h3>
+
+<p>This iApp helps you get IP addresses from DHCP
+for APM VPN/Network Access tunnels.</p>
+<p>It creates the APM-DHCP virtual server(s) needed to
+communicate with your DHCP server(s) and installs the
+special iRule you will invoke from an APM (Session)
+Access Policy to request an IP address.</p>
+<p>You may also use it turn APM DHCP debugging on and off.</p>
+
+<h3>HOW TO ASSIGN ADDRESS FROM DHCP TO NETWORK TUNNEL (VPN SESSION)</h3>
+
+<p>Ordinarily you assign an IP address to the "inside end" of an APM
+Network Tunnel (full VPN connection) from an address Lease Pool,
+from a static list, or from an LDAP or RADIUS attribute.</p>
+
+<p>However, you might wish to assign an IP address obtained from a
+DHCP server.  Perhaps the DHCP server owns all available client
+addresses.  Perhaps it handles dynamic DNS for named client
+workstations.  Or perhaps the DHCP server assigns certain users
+specific IP addresses, which may be referenced in ACL's elsewhere
+in the network.</p>
+
+<p>f5's old Firepass VPN supported DHCP address assignment but APM
+does not.  This iApp helps you use f5 iRules to enable DHCP with
+APM.  We will send data from APM session variables to the DHCP
+server so it can issue the "right" IP address to each VPN tunnel
+based on user identity, client info, etc..</p>
+
+<p>You must define at least one APM-DHCP virtual server to
+receive and send DHCP protocol packets.  Usually an APM-DHCP
+virtual server needs an IP address on the subnet on which
+you expect your DHCP server(s) to assign client addresses.
+You may define additional APM-DHCP virtual servers to
+request IP addresses from DHCP on additional subnets.
+However, if your DHCP server(s) support subnet-selection
+(see <b>session.dhcp.subnet</b> below) then you
+may need only a single APM-DHCP virtual server and it
+can use any IP that can talk to your DHCP server(s).</p>
+
+<p>Use this iApp to create each APM-DHCP virtual server.
+(All APM-DHCP virtual servers use UDP port 67 and a custom
+UDP Profile.)</p>
+
+<p>Into your Access Policy, following your Logon Page and AD Auth
+(or XYZ Auth) Items, but <i><b>before</b></i> any (Full/Advanced/simple)
+Resource Assign Item to assign the Network Access Resource (VPN),
+insert both Machine Info and Windows Info Items.  (The Windows Info
+Item will not bother non-Windows clients.)  Next insert a
+Variable Assign Item and name it "DHCP Setup".  In your "DHCP Setup"
+Item, set any needed DHCP parameters (explained below) as
+custom session variables.
+You <i>must</i> set <b>session.dhcp.servers</b>
+and place the IP address of an APM-DHCP virtual server into
+<b>session.dhcp.virtIP</b>.  Finally, insert an iRule Event Item.
+Name it "DHCP Req" and set its "Agent ID" to <b>DHCP_req</b>.
+See below for more details and advanced options.</p>
+
+<h3>WHAT IS GOING ON HERE?</h3>
+
+<p>We can send out DHCP request packets easily enough using iRules'
+SIDEBAND functions, but it is difficult to collect UDP DHCP
+replies using SIDEBAND.*  Instead, we must set up a distinct LTM
+virtual server to receive DHCP replies on port 67 at a fixed
+address.  We tell the DHCP server(s) we are a DHCP relay device
+so replies will come back to us directly (no broadcasting).**</p>
+
+<p>(*And even more difficult using [listen] for those of you in the
+back of the room.)</p>
+(**A bug in some versions of VMware Workstation's DHCP server
+makes it send bogus reply packets (IP unicast in MAC broadcast)
+which a normal BIG-IP virtual server cannot receive and a proper
+server would not send.)</p>
+
+<p>(For a nice explanation of the DHCP request process, see
+http://technet.microsoft.com/en-us/library/cc940466.aspx )</p>
+
+<p>It is best to give your APM-DHCP virtual server a distinct IP
+address, but you may use an LTM self-IP as per f5 SOL13896:
+http://support.f5.com/kb/en-us/solutions/public/13000/800/sol13896.html
+Your DHCP server will generally assign client IP's on the same
+subnet as your APM-DHCP virtual server.  You may be able to
+persuade it to assign addresses on a particular subnet
+using parameter <b>session.dhcp.subnet</b>.</p>
+
+<p>(The subnet(s) on which Network Access (VPN) tunnels are homed
+need not exist on any actual VLAN or LAN, so long as routes to
+to any such subnet lead to your APM (BIG-IP) device.  Suppose
+you wish to support 1000 simultaneous VPN connections and most
+of your corporate subnets are /24's, but you don't want to set
+up four subnets for VPN users.  You could define a virtual
+subnet, say, 172.30.4.0/22, tell your DHCP server(s) to assign
+addresses from 172.30.4.3 thru 172.30.7.254 to clients, put an
+APM-DHCP virtual server on 172.30.4.2, and so long as your
+infrastructure knows that your APM BIG-IP is the gateway to the
+172.30.4.0/22 subnet, you're golden.)</p>
+
+<p>(At this time we support only IPv4, though adding IPv6 would
+require only toil, not genius.)</p>
+
+<p>When your APM Access Policy wants an IP address from DHCP, it
+will first set some parameters into APM session variables (esp.
+the IP address(es) of one or more DHCP server(s)) using a
+Variable Assign Item, then use an iRule Event Item to invoke
+iRule Agent <b>DHCP_req</b> in 'ir-apm-policy-dhcp'.
+<b>DHCP_req</b> will
+send DHCPDISCOVERY packets to the specified DHCP server(s).  The
+DHCP server(s) will reply to those packets via your APM-DHCP
+virtual-server (which has iRule 'ir-apm-dhcp' attached to it).
+That iRule will finish the 4-packet DHCP handshake to lease an
+IP address.  <b>DHCP_req</b> handles timeouts/retransmissions, and
+copies the client IP address assigned by the DHCP server into
+APM session variables for the Access Policy to use.</p>
+
+<p>NB: this code does NOT renew DHCP address leases automatically.
+However, it DOES release addresses obtained from DHCP after APM
+access sessions terminate.  Please configure your DHCP server(s)
+for a lease time longer than your APM Maximum Session Timeout.</p>
+
+<p>(Since you asked, yes, this scheme supports multiple APM users
+and sessions in parallel.)</p>
+
+<p>We use the APM 8-hexit Session-ID as our DHCP transaction ID
+'XID' and also by default in 'chaddr' to avert collisions and
+facilitate log tracing.</p>
+
+<h2>PARAMETERS YOU SET IN YOUR APM ACCESS POLICY</h2>
+
+<h3>REQUIRED PARAMETERS</h3>
+
+<h4>session.dhcp.virtIP</h4>
+<p>IP address of an APM-DHCP virtual-server (on UDP port 67)
+   with iRule 'ir-apm-dhcp' (no Pool or Nodes, though!).  This
+   IP must be reachable from your DHCP server(s).  DHCP servers
+   will generally assign client IP's on the same subnet as this
+   virtual-server, though you may be able to request otherwise
+   by setting <b>session.dhcp.subnet</b> (see below).  You may create
+   as many APM-DHCP virtual servers as you wish on different
+   subnets then set <b>session.dhcp.virtIP</b> in your Access Policy
+   to any one of them as a way of requesting a client IP on a
+   particular subnet.  No default.  Example (Access Policy
+   syntax):  expr {"172.16.10.245"}</p>
+
+<h4>session.dhcp.servers</h4>
+   A TCL list of one or more IP addresses for DHCP server(s)
+   (or DHCP relays, such as a nearby IP router).  When
+   requesting a client IP address, DHCP packets will be sent
+   to every server on this list.  NB:  IP broadcast addresses
+   like 10.10.10.255 may be specified but it is better to
+   list specific servers (or relays).  Default: none.  Example
+   (Access Policy syntax):  expr {[list "10.0.5.20" "10.0.7.20"]}</p>
+
+<h3>OPTIONAL PARAMETERS (Including Some "DHCP Options")</h3>
+
+<p>NOTE: when you leave a parameter undefined or empty, a suitable
+value from the APM session environment will be substituted (see
+details below).  The defaults produce good results in most cases.
+To exclude a parameter entirely set its value to '' (two ASCII
+single-quotes).  White-space and single-quote are trimmed from
+the ends of parameter values, so '' indicates an nil value.</p>
+
+<p>It is best to put "Machine Info" and "Windows Info" Items into
+your Access Policy ahead of your iRule Event <b>DHCP_req</b> Item.</p>
+
+<h4>session.dhcp.copy2var</h4>
+<p>Leave this undefined or empty and by default the IP address
+   from DHCP will be copied into the Access Policy session
+   variable <b>session.requested.clientip</b>, thereby setting the
+   Network Access (VPN) tunnel's inside IP address.  To override
+   the default, name another session variable here, or set this
+   to '' (two single-quotes) to avert copying the IP anywhere.</p>
+
+<h4>session.dhcp.vendor_class</h4>
+<p>A short (32 characters max) string identifying your VPN
+   server (Option 60).  Default: "f5-APM" ("F5.Firepass" in
+   Firepass mode).  The DHCP server may key off this value to
+   send Option 43 "vendor-specific information" which will
+   appear in <b>session.dhcp.vinfo.<i>N</i></b>.</p>
+
+<h4>session.dhcp.user_class</h4>
+<p>A TCL list of strings by which the DHCP server may recognize
+   the class of the client device (e.g., "kiosk") (Option 77).
+   Default:  none (do not put '' here).  Example:
+   expr {[list "mobile" "tablet"]}</p>
+
+<h4>session.dhcp.client_ID</h4>
+<p>A unique identifier for the remote client device (Option 61).
+   Microsoft Windows DHCP servers expect a representation of
+   the MAC address of the client's primary NIC.  If left
+   undefined or empty the primary MAC address discovered by the
+   Access Policy Machine Info Item (if any) will be used.  If
+   no value is set and no Machine Info is available then no
+   client_ID will be sent and the DHCP server will distinguish
+   clients by APM-assigned ephemeral addresses.</p>
+
+<p>If you supply a client_ID value you may specify a MAC address,
+   a binary string, or a text string.  A value containing twelve
+   hexadecimal digits, possibly separated by hyphens or colons
+   into six groups of two or by periods into three groups of
+   four, will be encoded as a MAC address.  Values consisting
+   only of hexadecimal digits, of any length other than twelve
+   hexits, will be encoded as a binary strings.  A value which
+   contains characters other than [0-9A-Za-z] and doesn't seem
+   to be a MAC address will be encoded as a text string.  You
+   may enclose a text string in ASCII single-quotes (') to avert
+   interpretation as hex/binary (the quotes are not part of the
+   text value).  On the wire, MAC-addresses and text-strings
+   will be prefixed by type codes 0x01 and 0x00 respectively; if
+   you specify a binary string (in hex format) you must include
+   any needed codes.  Default:  client MAC from Machine Info,
+   otherwise none.  Example: "08-00-2b-2e-d8-5e".</p>
+
+<h4>session.dhcp.hostname</h4>
+<p>A hostname for the client (Option 12).  If left undefined or
+   empty, the short computer name discovered by the APM Access
+   Policy Windows Info Item, if any, will be used.</p>
+
+<h4>session.dhcp.subscriber_ID</h4>
+<p>An identifier for the VPN user.  If undefined or empty, the
+   value of APM session variable <b>session.logon.last.username</b>
+   will be used (generally the user's UID or SAMAccountName).</p>
+
+<h4>session.dhcp.circuit_ID</h4>
+<p>An identifier for the "circuit" or network endpoint to which
+   client connected.  If left undefined or empty, the IP address
+   of (current) APM virtual server will be used (in Firepass
+   mode, default is short name of the current virtual server).</p>
+
+<h4>session.dhcp.remote_ID</h4>
+<p>An identifier for the client's end of the connection.  If
+   undefined or empty, client's IP address + port will be used.</p>
+
+<p>(The ..circuit_ID, ..remote_ID, and ..subscriber_ID values are
+sub-options 1, 2, and 6 of DHCP Option 82 (rfc3046 & rfc3993).)</p>
+
+<h4>session.dhcp.subnet</h4>
+<p>The address (e.g., "172.16.99.0") of the IP subnet on which
+   you desire to lease an address.  This will be placed into
+   Option 118 and Sub-option 5 of Option 82.  (Some DHCP servers
+   do not support this feature.  Happily, MS Windows Server DHCP
+   added support in Windows Server 2016.)</p>
+
+<h4>session.dhcp.firepass</h4>
+<p>Set to "true" to activate "Firepass mode" which alters the
+   default values of several other options to make DHCP messages
+   from this (invoking) Access Policy resemble messages from the
+   old f5 Firepass product.  Leave undefined or empty (or set to
+   "false") to use APM defaults (APM preferred in most cases).</p>
+
+<h4>session.dhcp.broadcast</h4>
+<p>Only if value is "true" will DHCP broadcast flag be set.
+   (Generally a bad idea.)</p>
+
+<h4>session.dhcp.hwcode</h4>
+<p>Controls content of BOOTP htype, hlen, and chaddr fields.
+   If undefined or empty, a per-session value optimal in most
+   situations will be used (asserting chaddr, a copy of XID,
+   identifies a "serial line").  If your DHCP server will not
+   accept the default, you may set this to "MAC" and chaddr
+   will be a locally-administered Ethernet MAC (embedding XID).
+   When neither of those work you may force any value you wish
+   by concatenating hexadecimal digits setting the value of
+   htype (2 hexits) and chaddr (a string of 0-32 hexits).
+   E.g., a 6-byte Ethernet address resembles '01400c2925ea88'.
+   The most useful value in the last case is the MAC address
+   of session.dhcp.virtIP (i.e., a specific BIG-IP MAC), since
+   broken DHCP servers may send Layer-2 packets directly to
+   that address.  In Firepass mode the default is "MAC".</p>
+
+<h4>After you set parameters in Access Policy Variable Assign Item
+remember to invoke <b>DHCP_req</b> from an iRule Event Item!</h4>
+
+<h3>RESULTS OF DHCP REQUEST FOR USE IN ACCESS POLICY</h3>
+
+<h4>session.dhcp.address  <i>== address assigned by DHCP!</i></h4>
+<h4>session.dhcp.message</h4>
+<h4>session.dhcp.server</h4>
+<h4>session.dhcp.expires</h4>
+<h4>session.dhcp.lease</h4>
+<h4>session.dhcp.rebind, session.dhcp.renew, session.dhcp.issued</h4>
+<h4>session.dhcp.vinfo.N</h4>
+<h4>session.dhcp.xid, session.dhcp.hex_client_id, session.dhcp.hwx</h4>
+
+<p>If a DHCP request succeeds you will find the IP address in
+<b>session.dhcp.address</b>.  If that variable is empty, look in
+<b>session.dhcp.message</b> for an error message.  The IP address of
+the DHCP server which issued (or refused) the IP address will
+be in <b>session.dhcp.server</b>.  Look at <b>session.dhcp.expires</b>
+to see when lease will expire.  Variables <b>session.dhcp.lease</b>,
+<b>session.dhcp.rebind</b>, and <b>session.dhcp.renew</b> indicate the
+length of the address lease, plus the rebind and renew times,
+in seconds relative to clock value in <b>session.dhcp.issued</b>
+(issued time).  Look in <b>session.dhcp.vinfo.<i>N</i></b>
+where N is tag number (1-254) for
+Option 43 "vendor-specific information" from the DHCP server.
+To assist in log analysis and debugging, <b>session.dhcp.xid</b>
+contains the XID code used in the DHCP request and the
+client_ID value (if any) sent to the DHCP server(s) is in
+<b>session.dhcp.hex_client_id</b>.
+The concatenation of 'htype' and 'chaddr' from the DHCP request
+will appear (in hex) in <b>session.dhcp.hwx</b>.</p>
+            }
+            implementation {
+package require iapp 1.1.1
+#package require sha1
+#package require sha256
+#package require base64
+
+proc ::iapp::safe_display { args } {
+    # strings sent to APL must be truncated to 65535 bytes, see ID435592
+    if { [string length [set [set args]]] > 65535 } {
+        set last_newline [string last "\n" [set [set args]] 65500]
+        return "[string range [set [set args]] 0 $last_newline]Error: Too many items for display"
+    } else {
+        return [set [set args]]
+    }
+}
+
+proc ::iapp::destination { args } {
+    # Set defaults. Flag actions may overwrite defaults later.
+    set route_domain    0
+    set do_mask         0
+    set port            0
+
+    # Set up flag-based actions.
+    array set flags  {
+        -route_domain { [set route_domain [iapp::pull $ptr args]] }
+        -mask         { [set do_mask 1] }
+        -length       { [set cidr_bits [iapp::pull $ptr args]] }
+    }
+
+    if { [llength [set non_switches [iapp::process_flags flags args]]] > 2 } {
+        error "Too many arguments"
+    }
+    if { [llength $non_switches] == 2 } { set port [lindex $non_switches 1] }
+    set addr [lindex $non_switches 0]
+
+
+    # Detect a CIDR mask and pull it off the addr string
+    if { [set loc [string first "/" $addr end-4]] != -1 } {
+        set cidr_bits [string range $addr [expr {$loc + 1}] end]
+        set addr [string range $addr 0 [expr {$loc - 1}]]
+    }
+
+    # Pull the route-domain off the addr string, but only use it as the
+    # route domain if it wasn't overridden by -route_domain flag.
+    if { [string first "%" $addr] != -1 } {
+        if { $route_domain == 0 } {
+            # route-domain is still default, so use value from addr string
+            set route_domain [lindex [split $addr "%"] 1]
+        }
+        set addr [lindex [split $addr "%"] 0]
+    }
+
+    if { $do_mask } {
+
+        # Define the delta between ipv4 and ipv6.
+        # length: ipv4 mask is 32 bits, ipv6 is 128 bits.
+        # group: ipv4 is grouped in octets, ipv6 as 16 bit words.
+        # format: ipv4 is decimal notation, ipv6 is hex.
+        # format1 also has the delimiter, format2 does not.
+        array set v {
+            0,length  32
+            0,group   8
+            0,format1 d.
+            0,format2 d
+            1,length  128
+            1,group   16
+            1,format1 .4x:
+            1,format2 .4x
+        }
+        set is_ipv6 [string match "*:*:*" $addr]
+
+        # Soften result of an illegal -length parameter.
+        if { ![info exists cidr_bits] || $cidr_bits > $v($is_ipv6,length) } {
+            set cidr_bits $v($is_ipv6,length)
+        } elseif { $cidr_bits < 0 } {
+            set cidr_bits 0
+        }
+
+        # Loop on the full length of the mask: 32 bits for ipv4, 128 for ipv6
+        for { set octet 0; set i 0 } { $i < $v($is_ipv6,length) } { incr i } {
+
+           # Take a break at intervals to save the grouping and add delimiter.
+           # Interval is 8 bits for ipv4 and 16 bits for ipv6.
+           if { $i && ![expr {$i % $v($is_ipv6,group)}] } {
+
+               # Add the grouping and delimiter to the mask, then reset.
+               append mask [format %$v($is_ipv6,format1) $octet]
+               set octet 0
+           }
+           # Shift the prior bits left by multiplying by 2.
+           # Then add the current bit, which is 1 if part of the mask, 0 if not.
+           # Current bit is part of the mask if $i < number of bits in the mask.
+           set octet [expr { 2 * $octet + ($i < $cidr_bits) }]
+        }
+        # Add the final grouping, then return the finished mask.
+        set ret_val [format $mask%$v($is_ipv6,format2) $octet]
+
+    } else {
+
+        # calculate a destination
+        # the route domain might be a name and we need a number.
+        if { ![string is integer $route_domain] } {
+            set route_domains [tmsh::get_config "/ net route-domain $route_domain"]
+            if { [llength $route_domains] != 1 } {
+                error "no such route domain: $route_domain"
+            }
+            # since we have already determined that the list is 1 long,
+            # this explicit reference to element 0 is safe
+            set route_domain [tmsh::get_field_value [lindex $route_domains 0] "id"]
+        }
+
+        set route_domain [expr { $route_domain == 0 ? "" : "%$route_domain" }]
+
+        # 0 and * represent wildcard port assignments in the GUI,
+        # but TMSH requires the string 'any' to specify a wildcard.
+        if { $port == 0 || $port == "*" } {
+            set port any
+        }
+
+        # Build the final destination. Use ":" for node names even if ipv6.
+        set is_ipv6_literal [string match "*:*:*" $addr]
+        set addr_delimiter  [expr { $is_ipv6_literal ? "." : ":" }]
+        set ret_val ${addr}${route_domain}${addr_delimiter}${port}
+    }
+    return $ret_val
+}
+
+iapp::template start
+
+set ::myapp $tmsh::app_name
+set ::mypath [tmsh::pwd]
+set ::mypartn [regsub {/[^/]+$} $::mypath {}]
+
+# escape curly-brackets using string map
+set ::bkts [list "\x7b" "\x5c\x7b" "\x7d" "\x5c\x7d"]
+
+# remove non-ASO objects before erroring out
+if {[info command lreverse] eq ""} {
+ proc lreverse list {
+  set rslt [list]
+  set i [llength $list]
+  while {$i} { lappend rslt [lindex $list [incr i -1]] }
+  set rslt
+ }
+}
+
+set ::backout [list]
+proc fail {err} {
+ package require iapp 1.1.1
+
+ foreach {cmd} [lreverse $::backout] {
+  if {[catch [string map $::bkts $cmd] e]} {
+   iapp::debug "backing out: command '${c}' error ${e}"
+  }
+ }
+ set msg "\n______________________________________________________________\n\n"
+ append msg "\n${err}\n\n" $msg
+
+ error ${msg}
+
+ iapp::debug "proc 'fail'-- should never get here!"
+} ; #proc fail
+
+
+if {$::mypartn ne "/Common"} {
+ fail "You may only configure this iApp in partition /Common."
+}
+
+
+# Read in an APL table even when some columns are empty or contain spaces:
+#  table=name of table variable (like ::xx__tbl)
+#  cols=list of column names, in desired order, like {name ip port}
+# Returns a list of lists; each inner list is column values (no names) from
+# one table row in the order specified.  Column values may be empty strings,
+# like: {{hello "" "value with embedded spaces"} {goodbye "to all that" ""}}
+proc scan_APL_table {table cols} {
+ if {![info exists $table] || ![llength [set [set table]]]} { return [list] }
+
+ set matrix [list]
+ foreach {row} [set [set table]] {
+  set rank [list]
+  foreach {elem} [split [join $row] "\n"] {
+   if {$elem eq ""} { continue }
+   set n [set v ""]
+   regexp {^\s*(\S+)\s*(.*)$} $elem junk n v
+   lappend rank $n $v
+  }
+  set line [list]
+  foreach {name} $cols {
+   set val ""
+   if {[set x [lsearch -exact $rank $name]] >= 0} {
+    set val [lindex $rank [incr x]]
+   }
+   lappend line $val
+  }
+  lappend matrix $line
+ }
+ return $matrix
+} ; #proc scan_APL_table
+
+
+# neither lappend nor lset does what we want, so...
+proc lnew {name prime} {
+ upvar $name n
+ set n [expr {($prime ne "") ? [list $prime] : [list]}]
+ return $n
+} ; #proc lnew
+
+
+# Encode a string so it will trigger fewer bugs in TMSH
+proc tmsh_escape {str} {
+ set bb [list "\x5c" "\x5c\x5c"]
+ if {[string first "'" $str] < 0} { return "'[string map $bb $str]'" }
+ if {[string first "\x22" $str] < 0} { return "\x22[string map $bb $str]\x22" }
+ return [string map $::tmsh_escape $str]
+} ; #proc tmsh_escape
+
+
+# test whether named object exists in configuration
+proc exists {target} {
+ package require iapp 1.1.1
+ return [expr {![catch {tmsh::get_config $target}]}]
+} ; #proc exists
+
+
+#------------------------------------------------------------
+# iRules for solution
+
+set ir_apm_dhcp {
+# ** Get IP addresses for APM VPN/Network Access tunnels from DHCP **
+# (v3d) 2018-04-19a -- Written by Mark Quevedo, f5 Systems Engineer
+#
+# NB:  Define *this* iRule 'ir-apm-dhcp' in the Common partition
+# and attach it to *each* APM-DHCP virtual-server you create (UDP
+# port 67, on a subnet with routes to your DHCP server(s) or DHCP
+# relay(s)).  Even if you use different APM-DHCP virtual servers in
+# different partitions/route-domains, keep this iRule in /Common.
+# Apply a custom UDP Profile to each APM-DHCP virtual server as
+# explained below.
+#
+# Attach the separate iRule 'ir-apm-policy-dhcp' to each APM-
+# enabled virtual server needing DHCP--you will invoke *that*
+# iRule from your APM Access Policy.  (Do not rename 'ir-apm-dhcp'
+# unless you also edit 'ir-apm-policy-dhcp' because that iRule
+# calls a proc in this one.)
+#
+# APPLY CUSTOM UDP PROFILE TO EACH APM-DHCP VIRTUAL SERVER!
+# Create a custom UDP Profile with "Idle Timeout" set to "0"
+# and apply it to each APM-DHCP virtual server.
+#
+# See the iRule 'ir-apm-policy-dhcp' for many more setup and
+# usage details.
+#
+
+when RULE_INIT {
+ # enable debugging messages?
+ set static::apm_dhcp_debug @@DEBUG@@
+
+ # keep state in LTM cache just while running DHCP protocol
+ set static::apm_dhcp_tbl_ttl 60
+}
+
+
+# Per SOL14563 do NOT use CLIENT_DATA event...
+when CLIENT_ACCEPTED {
+ set me "[IP::local_addr]_[TMM::cmp_unit]"
+
+ for {} 1 {break} {
+  if {[set len [UDP::payload length]] > 1344} {
+   log local0.info "${me}: ${len}-byte UDP (DHCP?) msg from [IP::client_addr] over 1344-byte max"
+   break
+  }
+ 
+  if {$static::apm_dhcp_debug} {
+   log local0.info "${me}: about to parse ${len}-byte UDP msg from [IP::client_addr]:[UDP::client_port] for DHCP"
+  }
+  set msg [UDP::payload]
+  binary scan $msg cH2H2cH8SSIIIIH32c64c128H8c* op htype hlen hops xid secs flags ciaddr yiaddr siaddr giaddr chaddr sname file magic options
+ 
+  if {$op != 2} {
+   #probably some other fellow's DHCP broadcast
+   break
+  }
+  if {$magic ne "63825363"} {
+   log local0.info "${me}: supposed DHCP msg from [IP::client_addr] missing magic cookie (XID may be ${xid})"
+   break
+  }
+  
+  # we use XID to rendezvous with both DHCP servers and
+  # 'DHCP_req' from iRule 'ir-apm-policy-dhcp'.  XID is
+  # trailing eight hexits of APM sid, same as the APM
+  # SessionID shown in management UI/logs
+
+  if {([set dhcp_state [table lookup "dhcp_state_${xid}"]] eq "") ||
+      ($dhcp_state > 1)} {
+   if {$static::apm_dhcp_debug} {
+    log local0.info "${me}: discarding surplus BOOTREPLY for ${xid} from [IP::client_addr], dhcp_state=${dhcp_state}"
+   }
+   break
+  }
+ 
+  # parse DHCP options from $options, and maybe $file and/or $sname,
+  # which are formatted as lists of byte values (we ignore most options)
+  set msgtype 0
+  set svr_id 0
+  set lease 0
+  set rebind 0
+  set renew 0
+  set opt_ovld 0
+  set opt_vinfo ""
+  set opt_msg ""
+ 
+  set numeric_opts [list 51 lease 52 opt_ovld 53 msgtype \
+                         54 svr_id 58 renew 59 rebind]
+  set string_opts [list 43 opt_vinfo 53 opt_msg]
+ 
+  foreach {v} [list "options" "file" "sname"] {
+   if {($v eq "file") && ![expr {$opt_ovld & 0x1}]} {
+    continue
+   }
+   if {($v eq "sname") && ![expr {$opt_ovld & 0x2}]} {
+    continue
+   }
+   set vector [set $v]
+   set state 0
+   foreach {c} $vector {
+    set c [expr {$c & 0xff}]
+    switch $state {
+     0 {
+      if {$c == 0} { continue }
+      if {$c == 255} { break }
+      if {[set x [lsearch $numeric_opts $c]] >= 0} {
+       set opt [lindex $numeric_opts [incr x]]
+       set state 100
+      } elseif {[set x [lsearch $string_opts $c]] >= 0} {
+       set opt [lindex $string_opts [incr x]]
+       set state 90
+      } else {
+       set state 80
+      }
+     }
+     80 {
+      set state [expr {([set ctr $c] < 1) ? 0 : 81}]
+      # skip unwanted option
+     }
+     81 {
+      if {[incr ctr -1] < 1} { set state 0 }
+     }
+     90 {
+      set val ""
+      set state [expr {([set ctr $c] < 1) ? 0 : 91}]
+      # collect "string" option
+     }
+     91 {
+      set val [binary format a*c $val $c]
+      if {[incr ctr -1] < 1} {
+       set $opt $val
+       set state 0
+      }
+     }
+     100 {
+      if {[set ctr $c] > 4} {
+       log local0.info "${me}: overlong numeric DHCP option '${opt}' from [IP::client_addr] for ${xid}"
+       set state 81
+      } elseif {$ctr == 0} {
+       set state 0
+      } else {
+       set accum 0
+       set state 101
+       # accumulate numeric option
+      }
+     }
+     101 {
+      set accum [expr {($accum << 8) + $c}]
+      if {[incr ctr -1] < 1} {
+       set $opt $accum
+       set state 0
+      }
+     }
+     - {
+      log local0.err "${me}: invalid state in DHCP options parser!"
+      break
+     }
+    } ; # state switch
+   }
+  }
+  
+  # our dhcp_state can be
+  #  0=sent DHCPDISCOVER (waiting for DHCPOFFER(s))
+  #  1=sent DHCPREQUEST (discard other DHCPOFFER(s), waiting for DHCPACK)
+  #  2=got DHCPACK (discard other DHCPOFFER(s))
+  #  3=got DHCPNAK (discard other DHCPOFFERS, though not without sadness)
+ 
+  binary scan [binary format I $yiaddr] c4 vector
+  set octets [list]
+  foreach {b} $vector { lappend octets [expr {$b & 0xff}] }
+  set your_ip [join $octets "."]
+ 
+  binary scan [binary format I $svr_id] c4 vector
+  set octets [list]
+  foreach {b} $vector { lappend octets [expr {$b & 0xff}] }
+  set dhcp_svr [join $octets "."]
+ 
+  set vdr_info [list]
+  if {$opt_vinfo ne ""} {
+   # parse our Option 43
+   binary scan $opt_vinfo c* vector
+   while {[llength $vector] > 2} {
+    set tag [expr {0xff & [lindex $vector 0]}]
+    if {$tag == 255} { break }
+    if {$tag == 0} {
+     set vector [lrange $vector 1 end]
+     continue
+    }
+    set len [expr {0xff & [lindex $vector 1]}]
+    set omega [expr {1 + $len}]
+    set val [binary format c* [lrange $vector 2 $omega]]
+    lappend vdr_info [list $tag $val]
+    set vector [lrange $vector [incr omega] end]
+   }
+  }
+ 
+  if {$static::apm_dhcp_debug} {
+   log local0.info "${me}: dhcp_state=${dhcp_state}, parsed ${len}-byte DHCP type-${msgtype} msg for ${xid} from ${dhcp_svr} via [IP::client_addr]"
+   log local0.info "${me}: yiaddr=${your_ip}, lease=${lease}, rebind=${rebind}, renew=${renew}, opt_msg='${opt_msg}'"
+  }
+ 
+  if {($dhcp_state == 0) && ($msgtype == 2)} {
+   # while have LTM flow to DHCP server, send pending RELEASE
+   # messages.  They will have source port 67 rather than 68,
+   # but that is likely to satisfy server and/or firewall
+   call parthian [IP::local_addr] [IP::client_addr] $static::apm_dhcp_debug
+ 
+   # DHCPOFFER
+   set params [table lookup "dhcp_params_${xid}"]
+   foreach {dhcp_svrs client_id vdr_class usr_class host agt_ckt agt_rmt agt_sub subnbr} $params { break }
+ 
+   table set "dhcp_offer_${xid}" [list $yiaddr $svr_id $dhcp_svr] $static::apm_dhcp_tbl_ttl
+   table set "dhcp_state_${xid}" 1 $static::apm_dhcp_tbl_ttl
+ 
+   set REQUEST 3 ; # DHCPREQUEST message-type code
+   set bcast [expr {$flags & 0x8000}]
+ 
+   set octets [split [lindex [split [IP::local_addr] "%"] 0] "."]
+   set gIP 0
+   foreach {b} $octets { set gIP [expr {($gIP << 8) + $b}] }
+ 
+   # args: ht xid bc ci yi gi ch msgtype client_id svr_id vdr_class usr_class host agt_ckt agt_rmt agt_sub subnbr reqIP
+   set msg [call dhcpmsg $htype $xid $bcast 0 0 $gIP $chaddr $REQUEST $client_id $svr_id $vdr_class $usr_class $host $agt_ckt $agt_rmt $agt_sub $subnbr $yiaddr]
+   set msglen [string length $msg]
+ 
+   if {$static::apm_dhcp_debug} {
+    log local0.info "${me}: sending DHCPREQUEST(s) to ${dhcp_svrs}"
+   }
+   set sts ""
+   foreach {svr} $dhcp_svrs {
+    if {[IP::addr $svr equals $dhcp_svr]} { continue }
+    # tell non-chosen servers just whose offer we accept
+    if {[catch {connect -protocol UDP -myport 67 -status sts -idle 10 "${svr}:67"} cid] ||
+       ($cid eq "")} {
+     log local0.err "${me}: error sending DHCP request to ${svr} (${sts}) for ${xid}"
+    } elseif {[send -status sts $cid $msg] != $msglen} {
+     log local0.err "${me}: failed to send DHCP request to ${svr} (${sts}) for ${xid}"
+    }
+    if {$cid ne ""} { close $cid }
+   }
+   UDP::respond $msg ; #to chosen server
+   break
+  } elseif {$dhcp_state == 1} {
+   if {$msgtype == 5} {
+    # DHCPACK
+    foreach {last_yiaddr svr_id dhcp_svr} [table lookup "dhcp_offer_${xid}"] { break }
+    if {$yiaddr == $last_yiaddr} {
+     # per rfc2131 we should now ARP to check for IP collision
+     # but there is no reasonable way to do that from an iRule,
+     # so we will just grin and move along
+
+     table set "dhcp_info_${xid}" [list $your_ip $dhcp_svr $lease $rebind $renew $opt_msg $vdr_info] $static::apm_dhcp_tbl_ttl
+
+     ## I am reluctant to build lease-renewal in iRules.  For
+     ## now, please arrange for the DHCP server(s) to lease
+     ## out addresses for longer than APM session lifetimes
+
+     table set "dhcp_state_${xid}" 2 $static::apm_dhcp_tbl_ttl
+
+     # while have LTM flow to DHCP server, send pending RELEASE
+     # messages. They will have source port 67 rather than 68,
+     # but that is likely to satisfy server and/or firewall
+     call parthian [IP::local_addr] [IP::client_addr] $static::apm_dhcp_debug
+    } else {
+     log local0.err "${me}: DHCPACK via [IP::client_addr] does not match DHCPOFFER for ${xid}"
+     table set "dhcp_state_${xid}" 0 $static::apm_dhcp_tbl_ttl
+    }
+   } elseif {$msgtype == 6} {
+    # DHCPNAK
+    log local0.err "${me}: DHCPNAK from [IP::client_addr] for ${xid}, msg='${opt_msg}'"
+    if {$opt_msg eq ""} {
+     set opt_msg "Got DHCPNAK for ${xid} but no message"
+    }
+    table set "dhcp_info_${xid}" [list "" $dhcp_svr "" "" "" $opt_msg] $static::apm_dhcp_tbl_ttl
+    table set "dhcp_state_${xid}" 3 $static::apm_dhcp_tbl_ttl
+   }
+  }
+
+  # ignore other messages
+ }
+
+ # lacking any pool we must drop messages lest TMOS send ICMP Unreachables
+ UDP::drop
+}
+
+# cons up a DHCP{DISCOVER,REQUEST,RELEASE} message.
+# NB: this proc gets called from other iRules as well!
+# Client-id should be a string of hexits, length 0 mod 2.
+# If you don't want extra options in RELEASE message, don't
+# supply them
+#
+proc dhcpmsg {ht xid bc ci yi gi ch msgtype client_id svr_id vdr_class usr_class host agt_ckt agt_rmt agt_sub subnbr reqIP} {
+ # (NOTE: WE ARE NOT UNICODE-FRIENDLY HERE BECAUSE IT IS JUST
+ # TOO PAINFUL TO WORK AROUND IRULES UNICODE LAMEITUDE)
+
+ set msg [binary format H2 "01"]
+ set msg [binary format a*H2 $msg $ht] ; #chaddr type code
+ set msg [binary format a*c $msg [expr {(1 + [string length $ch]) >> 1}]]
+ set msg [binary format a*c $msg [expr {$msgtype != 7}]]
+ set msg [binary format a*H8 $msg $xid]
+ set msg [binary format a*H4 $msg "0000"]
+ set msg [binary format a*H4 $msg [expr {$bc ? "8000" : "0000"}]]
+ set msg [binary format a*I $msg $ci]
+ set msg [binary format a*I $msg $yi]
+ set msg [binary format a*I $msg 0] ; # siaddr always zero
+ set msg [binary format a*I $msg $gi]
+ set msg [binary format a*H32 $msg $ch] ; # chaddr (from hex)
+ set msg [binary format a*H128 $msg 0]
+ set msg [binary format a*H256 $msg 0]
+ set msg [binary format a*H8 $msg "63825363"] ; # magic cookie
+ set msg [binary format a*H4 $msg "3501"]
+ set msg [binary format a*c $msg $msgtype]
+ if {[set len [expr {(1 + [string length $client_id]) >> 1}]] && ($len < 65)} {
+  set msg [binary format a*H2 $msg "3d"]
+  set msg [binary format a*c $msg $len]
+  set msg [binary format a*H* $msg $client_id]
+ }
+ if {$svr_id != 0} {
+  set msg [binary format a*H4 $msg "3604"]
+  set msg [binary format a*I $msg $svr_id]
+ }
+ if {$reqIP != 0} {
+  # requested IP addr, Option 50
+  set msg [binary format a*H4I $msg "3204" $reqIP]
+ }
+
+ if {([set len [string length $vdr_class]] > 0) && ($len < 33)} {
+  set msg [binary format a*H2 $msg "3c"]
+  set msg [binary format a*c $msg $len]
+  set msg [binary format a*a* $msg $vdr_class]
+ }
+
+ if {[llength $usr_class] > 0} {
+  set len 0
+  set buf ""
+  foreach {v} $usr_class {
+   if {[set vlen [string length $v]] > 0} {
+    set buf [binary format a*ca* $buf $vlen $v]
+    incr len $vlen
+   }
+  }
+  if {$len < 256} {
+   set msg [binary format a*H2 $msg "4e"]
+   set msg [binary format a*c $msg $len]
+   set msg [binary format a*a* $msg $buf]
+  }
+ }
+
+ if {([set len [string length $host]] > 0) && ($len < 64)} {
+  set msg [binary format a*H2 $msg "0c"]
+  set msg [binary format a*c $msg $len]
+  set msg [binary format a*a* $msg $host]
+ }
+
+ if {$msgtype != 7} {
+  set msg [binary format a*H8 $msg "39020540"] ; # max-size 1344
+  set msg [binary format a*H12 $msg "3304ffffffff"] ; # ask indef. lease
+ }
+
+ # Option 118, Subnet Selection
+ if {$subnbr} {
+  set msg [binary format a*H4 $msg "7604"]
+  set msg [binary format a*I $msg $subnbr]
+ }
+
+ # Option 82, Agent Info
+ if {[set agt_ckt_len [string length $agt_ckt]] > 48} {
+  log local0.err "XID ${xid} Option 82 Agent Circuit ID '${agt_ckt}' too long"
+  set agt_ckt_len 0
+ }
+ if {[set agt_rmt_len [string length $agt_rmt]] > 48} {
+  log local0.err "XID ${xid} Option 82 Agent Remote ID '${agt_rmt}' too long"
+  set agt_rmt_len 0
+ }
+ if {[set agt_sub_len [string length $agt_sub]] > 128} {
+  log local0.err "XID ${xid} Option 82 Agent Subscriber ID '${agt_sub}' too long"
+  set agt_sub_len 0
+ }
+ set agt_info_len [expr {($agt_ckt_len ? ($agt_ckt_len + 2) : 0) +
+                         ($agt_rmt_len ? ($agt_rmt_len + 2) : 0) +
+                         ($subnbr ? (4 + 2) : 0) +
+                         ($agt_sub_len ? ($agt_sub_len + 2) : 0)}]
+ if {$agt_info_len} {
+  set msg [binary format a*H2 $msg "52"]
+  set msg [binary format a*c $msg $agt_info_len]
+  if {$agt_ckt_len} {
+   set msg [binary format a*H2 $msg "01"]
+   set msg [binary format a*c $msg $agt_ckt_len]
+   set msg [binary format a*a* $msg $agt_ckt]
+  }
+  if {$agt_rmt_len} {
+   set msg [binary format a*H2 $msg "02"]
+   set msg [binary format a*c $msg $agt_rmt_len]
+   set msg [binary format a*a* $msg $agt_rmt]
+  }
+  if {$subnbr} {
+   # Sub-option 5 subnet number
+   set msg [binary format a*H4 $msg "0504"]
+   set msg [binary format a*I $msg $subnbr]
+  }
+  if {$agt_sub_len} {
+   set msg [binary format a*H2 $msg "06"]
+   set msg [binary format a*c $msg $agt_sub_len]
+   set msg [binary format a*a* $msg $agt_sub]
+  }
+ }
+
+ set msg [binary format a*c $msg 255] ; #options end
+ return $msg
+} ; #proc dhcpmsg
+
+proc parthian {myip svrip debug} {
+ set me "parthian ${myip}_[TMM::cmp_unit]"
+
+ set msgtbl "dhcp-chute-${myip}"
+ set count [llength [set targets [table keys -subtable $msgtbl]]]
+ if {$debug} { log local0.info "${me}: ${count} keys in ${msgtbl}" }
+ if {$count < 1} { return }
+
+ set rex {^[0-9A-Fa-f]{24}([0-9A-Fa-f]{8})-([0-9.]+)-([0-9.]+)-([0-9.]+)-([0-9])$}
+ set finished [list]
+ foreach {tgt} $targets {
+  set xid [set dhcp_ip [set dhcp_svr [set dhcp_addr ""]]] ; set tries -1
+  if {![regexp $rex $tgt junk xid dhcp_ip dhcp_svr dhcp_addr tries] ||
+      ($tries < 1) || ($dhcp_ip ne $myip)} {
+   log local0.err "${me}: ${msgtbl} invalid key='${tgt}'"
+   lappend finished $tgt
+   continue
+  }
+  if {$debug} {
+   log local0.info "${me}: msg for ${dhcp_addr} to ${dhcp_svr} for ${xid}"
+  }
+
+  if {$dhcp_svr ne $svrip} {
+   if {$debug} {
+    log local0.info "${me}: currently talking to ${svrip}, skip msg to ${dhcp_svr} for ${xid}"
+   }
+   continue
+  }
+
+  if {$debug} {
+   log local0.info "${me}: send msg for ${dhcp_addr} to ${dhcp_svr} for ${xid}"
+  }
+  UDP::respond [table lookup -subtable $msgtbl $tgt]
+  lappend finished $tgt
+ }
+ foreach {tgt} $finished { table delete -subtable $msgtbl $tgt }
+} ; #proc parthian
+
+#bottom of file
+} ; #end of ir_apm_dhcp
+
+
+set ir_apm_dhcp_policy {
+# ** Get IP addresses for APM VPN (Network Access) tunnels from DHCP **
+# (v3d) 2018-04-19a -- Prepared by Mark Quevedo, f5 Systems Engineer
+#
+# NB:  Define *this* iRule 'ir-apm-policy-dhcp' in the Common
+# partition and attach it to any APM virtual-server running an
+# Access Policy which asks DHCP for an IP address.  You may put
+# APM virtual servers in different partitions/route-domains,
+# but keep this iRule in /Common.
+#
+# Attach the separate iRule 'ir-apm-dhcp' to your APM-DHCP
+# virtual server(s).  *This* iRule 'ir-apm-policy-dhcp' calls a
+# proc in 'ir-apm-dhcp' so do not rename *that* iRule without
+# correcting this one.
+#
+# HOW TO ASSIGN ADDRESS FROM DHCP TO NETWORK TUNNEL (VPN SESSION)
+#
+# Ordinarily we assign an IP address to the "inside end" of an APM
+# Network Tunnel (full VPN connection) from an address Lease Pool,
+# from a static list, or from an LDAP or RADIUS attribute.
+#
+# However, we might wish to assign an IP address obtained from a
+# DHCP server.  Perhaps the DHCP server owns all the available
+# client addresses.  Or perhaps it handles dynamic DNS for named
+# client workstations.  f5's old Firepass VPN product supported
+# DHCP address assignment but APM doesn't.  We use f5 iRules to
+# enable DHCP with APM.
+#
+# You must define at least one APM-DHCP virtual server to handle
+# DHCP protocol packets.  Give an APM-DHCP virtual server an IP
+# address on the subnet on which you expect your DHCP server(s)
+# to assign addresses.  You may define additional APM-DHCP virtual
+# servers to get DHCP addresses on additional subnets.  If your
+# DHCP server(s) support subnet-selection (see 'session.dhcp.subnet'
+# below) you can make do with a single APM-DHCP virtual server on
+# any IP that can talk to your DHCP server(s).
+# Put each APM-DHCP virtual server on UDP port 67 and apply a custom
+# UDP Profile as shown in the companion iRule 'ir-apm-dhcp'.
+# 
+# Into your Access Policy, following your Logon Page and AD Auth (or
+# XYZ Auth) Items, but BEFORE any (Full/Advanced/simple) Resource
+# Assign Item to assign the Network Access Resource (VPN), insert
+# both Machine Info and Windows Info Items.  (The Windows Info
+# Item will not bother non-Windows clients.)  Next insert a
+# Variable Assign Item and name it "DHCP Setup".  In your "DHCP
+# Setup" Item, set any needed DHCP parameters (explained below) as
+# custom session variables.  You MUST set 'session.dhcp.servers'
+# and you must put the IP address of an APM-DHCP virtual server
+# into 'session.dhcp.virtIP'.  Finally insert an iRule Event Item
+# (name it "DHCP Req") and set its Agent ID to "DHCP_req".
+# See below for more details and advanced options.
+#
+# WHAT IS GOING ON HERE?
+# 
+# We can send out DHCP request packets easily enough using iRules'
+# SIDEBAND functions, but it is difficult to collect UDP DHCP
+# replies using SIDEBAND.*  Instead, we must set up a distinct LTM
+# virtual server to receive DHCP replies on port 67 at a fixed
+# address.  We tell the DHCP server(s) we are a DHCP relay device
+# so replies will come back to us directly (no broadcasting).**
+#
+# (*And even more difficult using [listen] for those of you in the
+# back of the room.)
+# (**A bug in some versions of VMware Workstation's DHCP server
+# makes it send bogus reply packets (IP unicast in MAC broadcast)
+# which a normal BIG-IP virtual server cannot receive and a proper
+# server would not send.)
+#
+# (For a nice explanation of the DHCP request process, see
+# http://technet.microsoft.com/en-us/library/cc940466.aspx )
+#
+# It is best to give your APM-DHCP virtual server a unique IP
+# address, but you may use an LTM self-IP as per f5 SOL13896:
+# http://support.f5.com/kb/en-us/solutions/public/13000/800/sol13896.html
+# Your DHCP server will generally assign client IP's on the same
+# subnet as your APM-DHCP virtual server.  You may be able to
+# persuade it to assign addresses on a particular subnet (i.e.,
+# one of your lease pools) using parameter 'session.dhcp.subnet'.
+#
+# (The subnet(s) on which Network Access (VPN) tunnels are homed
+# need not exist on any actual VLAN or LAN, so long as routes to
+# to any such subnet lead to your APM (BIG-IP) device.  Suppose
+# you wish to support 1000 simultaneous VPN connections and most
+# of your corporate subnets are /24's, but you don't want to set
+# up four subnets for VPN users.  You could define a virtual
+# subnet, say, 172.30.4.0/22, tell your DHCP server(s) to assign
+# addresses from 172.30.4.3 thru 172.30.7.254 to clients, put an
+# APM-DHCP virtual server on 172.30.4.2, and so long as your
+# infrastructure knows that your APM BIG-IP is the gateway to the
+# 172.30.4.0/22 subnet, you're golden.)
+#
+# (At this time we support only IPv4, though adding IPv6 would
+# require only toil, not genius.)
+#
+# When your APM Access Policy wants an IP address from DHCP, it
+# will first set some parameters into APM session variables (esp.
+# the IP address(es) of one or more DHCP server(s)) using a
+# Variable Assign Item, then use an iRule Event Item to invoke
+# iRule Agent 'DHCP_req' in 'ir-apm-policy-dhcp'.  'DHCP_req' will
+# send DHCPDISCOVERY packets to the specified DHCP server(s).  The
+# DHCP server(s) will reply to those packets via your APM-DHCP
+# virtual-server, which has iRule 'ir-apm-dhcp' attached to it.
+# That iRule will finish the 4-packet DHCP handshake to lease an
+# IP address.  'DHCP_req' handles timeouts/retransmissions, and
+# copies the client IP address assigned by the DHCP server into
+# APM session variables for the Access Policy to use.
+#
+# NB: this code does NOT renew DHCP address leases automatically.
+# However, it DOES release addresses obtained from DHCP after APM
+# access sessions terminate.  Please configure your DHCP server(s)
+# for a lease time longer than your APM Maximum Session Timeout.
+#
+# (Since you asked, yes, this scheme supports multiple APM users
+# and sessions in parallel.)
+#
+# We use the APM 8-hexit Session-ID as our DHCP transaction ID
+# 'XID' and also by default in 'chaddr' to avert collisions and
+# facilitate log tracing.
+#
+#
+# PARAMETERS YOU SET IN YOUR APM ACCESS POLICY
+#
+# REQUIRED PARAMETERS
+#
+# session.dhcp.virtIP
+#    IP address of an APM-DHCP virtual-server (on UDP port 67)
+#    with iRule 'ir-apm-dhcp' (no Pool or Nodes, though!).  This
+#    IP must be reachable from your DHCP server(s).  DHCP servers
+#    will generally assign client IP's on the same subnet as this
+#    virtual-server, though you may be able to request otherwise
+#    by setting 'session.dhcp.subnet' (see below).  You may create
+#    as many APM-DHCP virtual servers as you wish on different
+#    subnets then set 'session.dhcp.virtIP' in your Access Policy
+#    to any one of them as a way of requesting a client IP on a
+#    particular subnet.  No default.  Example (VPE syntax):
+#        expr {"172.16.10.245"}
+#
+# session.dhcp.servers
+#    A TCL list of one or more IP addresses for DHCP server(s)
+#    (or DHCP relays, such as a nearby IP router).  When
+#    requesting a client IP address, DHCP packets will be sent
+#    to every server on this list.  NB:  IP broadcast addresses
+#    like 10.10.10.255 may be specified but it is better to
+#    list specific servers (or relays).  Default: none.  Example
+#    (Access Policy syntax):  expr {[list "10.0.5.20" "10.0.7.20"]}
+#
+# OPTIONAL PARAMETERS (Including Some "DHCP Options")
+#
+# NOTE: when you leave a parameter undefined or empty, a suitable
+# value from the APM session environment will be substituted (see
+# details below).  The defaults produce good results in most cases.
+# To exclude a parameter entirely set its value to '' (two ASCII
+# single-quotes).  White-space and single-quote are trimmed from
+# the ends of parameter values, so '' indicates an nil value.
+#
+# It is best to put "Machine Info" and "Windows Info" Items into
+# your Access Policy ahead of your iRule Event "DHCP_req" Item.
+#
+# session.dhcp.copy2var
+#    Leave this undefined or empty and by default the IP address
+#    from DHCP will be copied into the Access Policy session
+#    variable 'session.requested.clientip', thereby setting the
+#    Network Access (VPN) tunnel's inside IP address.  To override
+#    the default, name another session variable here, or set this
+#    to '' (two single-quotes) to avert copying the IP anywhere.
+#
+# session.dhcp.vendor_class
+#    A short (32 characters max) string identifying your VPN
+#    server (Option 60).  Default: "f5-APM" ("F5.Firepass" in
+#    Firepass mode).  The DHCP server may key off this value to
+#    send Option 43 "vendor-specific information" which will
+#    appear in 'session.dhcp.vinfo.N'.
+#
+# session.dhcp.user_class
+#    A TCL list of strings by which the DHCP server may recognize
+#    the class of the client device (e.g., "kiosk") (Option 77).
+#    Default:  none (do not put '' here).  Example:
+#    expr {[list "mobile" "tablet"]}
+#
+# session.dhcp.client_ID
+#    A unique identifier for the remote client device (Option 61).
+#    Microsoft Windows DHCP servers expect a representation of
+#    the MAC address of the client's primary NIC.  If left
+#    undefined or empty the primary MAC address discovered by the
+#    Access Policy Machine Info Item (if any) will be used.  If
+#    no value is set and no Machine Info is available then no
+#    client_ID will be sent and the DHCP server will distinguish
+#    clients by APM-assigned ephemeral addresses.
+#
+#    If you supply a client_ID value you may specify a MAC address,
+#    a binary string, or a text string.  A value containing twelve
+#    hexadecimal digits, possibly separated by hyphens or colons
+#    into six groups of two or by periods into three groups of
+#    four, will be encoded as a MAC address.  Values consisting
+#    only of hexadecimal digits, of any length other than twelve
+#    hexits, will be encoded as a binary strings.  A value which
+#    contains characters other than [0-9A-Za-z] and doesn't seem
+#    to be a MAC address will be encoded as a text string.  You
+#    may enclose a text string in ASCII single-quotes (') to avert
+#    interpretation as hex/binary (the quotes are not part of the
+#    text value).  On the wire, MAC-addresses and text-strings
+#    will be prefixed by type codes 0x01 and 0x00 respectively; if
+#    you specify a binary string (in hex format) you must include
+#    any needed codes.  Default:  client MAC from Machine Info,
+#    otherwise none.  Example: "08-00-2b-2e-d8-5e".
+#
+# session.dhcp.hostname
+#    A hostname for the client (Option 12).  If left undefined or
+#    empty, the short computer name discovered by the APM Access
+#    Policy Windows Info Item, if any, will be used.
+#
+# session.dhcp.subscriber_ID
+#    An identifier for the VPN user.  If undefined or empty, the
+#    value of APM session variable 'session.logon.last.username'
+#    will be used (generally the user's UID or SAMAccountName).
+#
+# session.dhcp.circuit_ID
+#    An identifier for the "circuit" or network endpoint to which
+#    client connected.  If left undefined or empty, the IP address
+#    of (current) APM virtual server will be used (in Firepass
+#    mode, default is short name of the current virtual server).
+#
+# session.dhcp.remote_ID
+#    An identifier for the client's end of the connection.  If
+#    undefined or empty, client's IP address + port will be used.
+#
+# (The ..circuit_ID, ..remote_ID, and ..subscriber_ID values are
+# sub-options 1, 2, and 6 of DHCP Option 82 (rfc3046 & rfc3993).)
+#
+# session.dhcp.subnet
+#    The address (e.g., "172.16.99.0") of the IP subnet on which
+#    you desire to lease an address.  This will be placed into
+#    Option 118 and Sub-option 5 of Option 82.  (Some DHCP servers
+#    don't support this feature.  Happily, MS Windows Server DHCP
+#    added support in Windows Server 2016.)
+#
+# session.dhcp.firepass
+#    Set to "true" to activate "Firepass mode" which alters the
+#    default values of several other options to make DHCP messages
+#    from this (invoking) Access Policy resemble messages from the
+#    old f5 Firepass product.  Leave undefined or empty (or set to
+#    "false") to use APM defaults (APM preferred in most cases).
+#
+# session.dhcp.broadcast
+#    Only if value is "true" will DHCP broadcast flag be set.
+#    (Generally a bad idea.)
+#
+# session.dhcp.hwcode
+#    Controls content of BOOTP htype, hlen, and chaddr fields.
+#    If undefined or empty, a per-session value optimal in most
+#    situations will be used (asserting chaddr, a copy of XID,
+#    identifies a "serial line").  If your DHCP server will not
+#    accept the default, you may set this to "MAC" and chaddr
+#    will be a locally-administered Ethernet MAC (embedding XID).
+#    When neither of those work you may force any value you wish
+#    by concatenating hexadecimal digits setting the value of
+#    htype (2 hexits) and chaddr (a string of 0-32 hexits).
+#    E.g., a 6-byte Ethernet address resembles '01400c2925ea88'.
+#    The most useful value in the last case is the MAC address
+#    of session.dhcp.virtIP (i.e., a specific BIG-IP MAC), since
+#    broken DHCP servers may send Layer-2 packets directly to
+#    that address.  In Firepass mode the default is "MAC".
+#
+#---------------------------------------------------------------
+# After you set parameters in Access Policy Variable Assign Item
+# remember to invoke 'DHCP_req' from an iRule Event Item!
+#---------------------------------------------------------------
+#
+#
+# RESULTS OF DHCP REQUEST FOR USE IN ACCESS POLICY
+#
+# session.dhcp.address  <-- address assigned by DHCP!
+# session.dhcp.message
+# session.dhcp.server
+# session.dhcp.expires
+# session.dhcp.lease
+# session.dhcp.rebind, session.dhcp.renew, session.dhcp.issued
+# session.dhcp.vinfo.N
+# session.dhcp.xid, session.dhcp.hex_client_id, session.dhcp.hwx
+#
+# If a DHCP request succeeds you will find the IP address in
+# 'session.dhcp.address'.  If that variable is empty, look in
+# 'session.dhcp.message' for an error message.  The IP address of
+# the DHCP server which issued (or refused) the IP address will
+# be in 'session.dhcp.server'.  Look at 'session.dhcp.expires'
+# to see when lease will expire.  Variables 'session.dhcp.lease',
+# 'session.dhcp.rebind', and 'session.dhcp.renew' indicate the
+# length of the address lease, plus the rebind and renew times,
+# in seconds relative to clock value in 'session.dhcp.issued'
+# (issued time).  Look in 'session.dhcp.vinfo.N' where N is tag
+# number (1-254) for Option 43 "vendor-specific information"
+# from the DHCP server.  To assist in log analysis and debugging,
+# 'session.dhcp.xid' contains the XID code used in the DHCP
+# request and the client_ID value (if any) sent to the DHCP
+# server(s) is in 'session.dhcp.hex_client_id'.  The
+# concatenation of 'htype' and 'chaddr' from the DHCP request
+# will appear (in hex) in 'session.dhcp.hwx'.
+#
+
+when RULE_INIT {
+ set static::apm_dhcp_debug @@DEBUG@@
+
+ # there are 32 slots holding batches of released addrs.
+ # how long should we stall between releases of batches in each slot?
+ # too short an interval will waste BIG-IP CPU cycles.
+ # default: 240 seconds (4 minutes, so average release delay 2 mins)
+ set static::apm_dhcp_slot_intvl 240
+
+ # when traffic is light we might not visit a slot for even
+ # longer than the minimum delay of $static::apm_dhcp_slot_intvl
+ # How often should we check ALL slots to make sure even the
+ # littlest piggie gets something?
+ # default:  1200 seconds (20 minutes)
+ set static::apm_dhcp_all_slots 1200
+}
+
+when ACCESS_SESSION_STARTED {
+ # if you ask me, this should be built-in.  We want some way to
+ # distinguish clients when several are behind the same NAT gateway
+ ACCESS::session data set "session.user.clientport" [TCP::client_port]
+ ACCESS::session data set "session.server.network.myIP" [IP::local_addr]
+ ACCESS::session data set "session.server.network.myVirtual" \
+                          [lindex [split [virtual name] "/"] end]
+}
+
+when ACCESS_POLICY_AGENT_EVENT {
+ switch [ACCESS::policy agent_id] {
+  "DHCP_req" {
+   ACCESS::session data set session.dhcp.address "" ; #moriturus te saluto
+
+   set e ""
+   if {([set dhcp_ip [ACCESS::session data get session.dhcp.virtIP]] eq "") ||
+       [catch {IP::addr $dhcp_ip mask 255.255.255.255}]} {
+    set e "Cannot make DHCP requests without virtual server IP to accept replies"
+   } elseif {[set dhcp_svrs [ACCESS::session data get session.dhcp.servers]] eq ""} {
+    set e "Need one or more DHCP servers to query!"
+   }
+   if {$e ne ""} {
+    ACCESS::session data set session.dhcp.message $e
+    log local0.err $e
+    return
+   }
+
+   # (we do not insist on pairing of single-quotes)
+
+   set subnbr 0
+   set tmp [ACCESS::session data get session.dhcp.subnet]
+   if {[set subnet [string trim $tmp "\t\x20\x27"]] ne ""} {
+    if {[catch {IP::addr $subnet mask 255.255.255.255}]} {
+     log local0.err "session.dhcp.subnet must be IPv4 subnet number"
+     return
+    }
+    set octets [split $subnet "."]
+    foreach {b} $octets { set subnbr [expr {($subnbr << 8) + $b}] }
+   }
+
+   set bcast [regexp {(?i)^[ ']*(true|1)[ ']*$} [ACCESS::session data get session.dhcp.broadcast]]
+
+   set sid [ACCESS::session sid]
+   set xid [string range $sid end-7 end] ; # unique + easy to find in logs
+
+   set tmp [ACCESS::session data get session.server.network.myIP]
+   set myIP [lindex [split $tmp "%"] 0]
+
+   set myVirtual [ACCESS::session data get session.server.network.myVirtual]
+
+   set firepass false
+   if {[set tmp [ACCESS::session data get session.dhcp.firepass]] ne ""} {
+    set firepass [expr {!!$tmp}]
+   }
+
+   if {$firepass ||
+       [set tmp [ACCESS::session data get session.dhcp.hwcode]] ne ""} {
+    set tmp [string tolower [string trim $tmp "\t\x20\x27"]]
+    if {($tmp eq "mac") || ($firepass && ($tmp eq ""))} {
+     # "locally-administered MAC address"
+     set ht "01"
+     set chaddr "0af5${xid}" ; #~0xf5,0xf5,XID
+    } elseif {[regexp {^[0-9A-Fa-f]{2,34}$} $tmp]} {
+     set ht [string range $tmp 0 1]
+     set chaddr [string range $tmp 2 end]
+    } else {
+     log local0.info "invalid session.dhcp.hwcode"
+     set tmp ""
+    }
+   } else {
+    # default = finger-quotes "serial-line" identified by XID
+    set ht "14"
+    set chaddr $xid
+   }
+
+   set client_id ""
+   if {[set tmp [ACCESS::session data get session.dhcp.client_ID]] eq ""} {
+    set tmp [ACCESS::session data get {session.machine_info.last.net_adapter.list.[0].mac_address}]
+   }
+   if {$tmp ne ""} {
+    set tmp [string trim $tmp]
+    if {[regexp {(?i)^((([0-9A-F]{2}[-:]?){5}[0-9A-F]{2})|(([0-9A-F]{4}[.]){2}[0-9A-F]{4}))$} $tmp]} {
+     # sure looks like a 48-bit MAC address
+     append client_id "01" [string map {":" "" "-" "" "." ""} $tmp]
+    } elseif {[regexp {(?i)^[0-9A-F]+$} $tmp]} {
+     # string of hexits represents binary string
+     append client_id $tmp
+    } elseif {[set tmp [string trim $tmp {'}]] ne ""} {
+      binary scan $tmp H* Htmp
+      append client_id "00" $Htmp
+    }
+   }
+
+   if {[set vdr_class [string trim [ACCESS::session data get session.dhcp.vendor_class]]] eq ""} {
+    set vdr_class [expr {$firepass ? "F5.Firepass" : "f5-APM"}]
+   }
+   set vdr_class [string trim $vdr_class {'}]
+
+   set usr_class [ACCESS::session data get session.dhcp.user_class]
+
+   if {[set host [string trim [ACCESS::session data get session.dhcp.hostname]]] eq ""} {
+    set tmp [ACCESS::session data get session.windows_info_os.last.computer]
+    set host [lindex [split [string trim $tmp "|"] "|"] 0]
+   }
+   set host [string trim $host {'}]
+
+   if {[set agt_ckt [string trim [ACCESS::session data get session.dhcp.circuit_ID]]] eq ""} {
+    set agt_ckt [expr {$firepass ? $myVirtual : $myIP}]
+   }
+   set agt_ckt [string trim $agt_ckt {'}]
+
+   if {[set agt_rmt [string trim [ACCESS::session data get session.dhcp.remote_ID]]] eq ""} {
+    set tmp [ACCESS::session data get session.user.clientip]
+    set agt_rmt [lindex [split $tmp "%"] 0]
+    if {[set tmp [ACCESS::session data get session.user.clientport]] ne ""} {
+     append agt_rmt ":" $tmp
+    }
+   }
+   set agt_rmt [string trim $agt_rmt {'}]
+
+   if {[set agt_sub [string trim [ACCESS::session data get session.dhcp.subscriber_ID]]] eq ""} {
+    set agt_sub [ACCESS::session data get session.logon.last.username]
+   }
+   set agt_sub [string trim $agt_sub {'}]
+
+   table set "dhcp_params_${xid}" [list $dhcp_svrs $client_id $vdr_class $usr_class $host $agt_ckt $agt_rmt $agt_sub $subnbr] $static::apm_dhcp_tbl_ttl
+
+   set octets [split [lindex [split $dhcp_ip "%"] 0] "."]
+   set gIP 0
+   foreach {b} $octets { set gIP [expr {($gIP << 8) + $b}] }
+
+   set DISCOVER 1 ; # DHCPDISCOVER message-type code
+   # args: ht xid bc ci yi gi ch msgtype client_id svr_id vdr_class usr_class host agt_ckt agt_rmt agt_sub subnbr reqIP
+   set msg [call /Common/ir-apm-dhcp::dhcpmsg $ht $xid $bcast 0 0 $gIP $chaddr $DISCOVER $client_id 0 $vdr_class $usr_class $host $agt_ckt $agt_rmt $agt_sub $subnbr 0]
+   set msglen [string length $msg]
+
+   # prepare to accept DHCPOFFER(s)
+   table set "dhcp_state_${xid}" 0 $static::apm_dhcp_tbl_ttl
+
+   set retry [expr {3000 + round(rand() * 2000)}] ; #per rfc2131
+   set tries 2 ; #max would be 3
+   while {$tries > 0} {
+    # send DHCPDISCOVER(s)
+    foreach {svr} $dhcp_svrs {
+     set sts ""
+     if {[catch {connect -protocol UDP -myport 67 -status sts -idle 30 "${svr}:67"} cid] ||
+         ($cid eq "")} {
+      log local0.err "Error (${sts}) sending DHCP request to ${svr} for ${xid}"
+     } elseif {[set sentlen [send -status sts $cid $msg]] != $msglen} {
+      log local0.err "sentlen=${sentlen}, msglen=${msglen}"
+      log local0.err "Failed (${sts}) to send DHCP request to ${svr} for ${xid}"
+     }
+     if {$cid ne ""} { close $cid }
+    }
+
+    after 500
+    if {[set dhcp_state [table lookup "dhcp_state_${xid}"]] & 2} { break }
+    after 500
+    if {[set dhcp_state [table lookup "dhcp_state_${xid}"]] & 2} { break }
+    after 500
+    if {[set dhcp_state [table lookup "dhcp_state_${xid}"]] & 2} { break }
+    after [expr {$retry - 1500}]
+    if {[set dhcp_state [table lookup "dhcp_state_${xid}"]] & 2} { break }
+    set retry [expr {$retry * 2}] ; # not quite per rfc2131, but close
+    incr tries -1
+   }
+   if {($tries < 1) ||
+       ([llength [set dhcp_info [table lookup "dhcp_info_${xid}"]]] < 5)} {
+    table delete "dhcp_state_${xid}"
+    table delete "dhcp_info_${xid}"
+    set e "Cannot obtain DHCP address for ${xid}"
+    log local0.info $e
+    ACCESS::session data set session.dhcp.message $e
+   } else {
+    foreach {dhcp_addr dhcp_svr lease rebind renew opt_msg vdr_info} $dhcp_info { break }
+
+    if {$dhcp_state == 2} {
+     ACCESS::session data set session.dhcp.address $dhcp_addr
+
+     if {[set copy2var [ACCESS::session data get session.dhcp.copy2var]] eq ""} {
+      set copy2var "session.requested.clientip"
+      ACCESS::session data set session.dhcp.copy2var $copy2var ; #a reminder
+     }
+     if {[set copy2var [string trim $copy2var "\t\x20\x27"]] ne ""} {
+      ACCESS::session data set $copy2var $dhcp_addr
+     }
+
+     ACCESS::session data set session.dhcp.server $dhcp_svr
+     ACCESS::session data set session.dhcp.lease $lease
+     ACCESS::session data set session.dhcp.rebind $rebind
+     ACCESS::session data set session.dhcp.renew $renew
+     set now [clock seconds]
+     ACCESS::session data set session.dhcp.issued $now
+     ACCESS::session data set session.dhcp.expires [clock format [expr {$now + $lease}] -format "%c"]
+
+     if {[llength $vdr_info] > 0} {
+      foreach {elem} $vdr_info {
+       foreach {tag value} $elem {
+        ACCESS::session data set "session.dhcp.vinfo.${tag}" $value
+       }
+      }
+     }
+
+ ################################################################
+ ## Start workaround for inability to use LTM session table or
+ ## (ID 414420) iRules SIDEBAND commands in ACCESS_SESSION_CLOSED
+ ################################################################
+
+     # prepare DHCPRELEASE msg and stash it in session table
+     # for sweeper's use
+     set octets [split $dhcp_addr "."]
+     set cIP 0
+     foreach {b} $octets { set cIP [expr {($cIP << 8) + $b}] }
+
+     set octets [split $dhcp_svr "."]
+     set svr_id 0
+     foreach {b} $octets { set svr_id [expr {($svr_id << 8) + $b}] }
+
+     set RELEASE 7 ; # DHCPRELEASE message-type code
+     # args: ht xid bc ci yi gi ch msgtype client_id svr_id vdr_class usr_class host agt_ckt agt_rmt agt_sub subnbr reqIP
+     if {$firepass} {
+      set msg [call /Common/ir-apm-dhcp::dhcpmsg $ht $xid 0 $cIP 0 $gIP $chaddr $RELEASE $client_id $svr_id $vdr_class [list] $host $agt_ckt "" "" 0 $cIP]
+     } else {
+      set msg [call /Common/ir-apm-dhcp::dhcpmsg $ht $xid 0 $cIP 0 0 $chaddr $RELEASE $client_id $svr_id "" [list] "" "" "" "" 0 0]
+     }
+
+     # Alert sweeper for the relevant virtual server to RELEASE
+     # disused addresses as folks connect.  This way, even though
+     # we delay releasing DHCP IP's, we do free them up before
+     # they're needed again.
+     # Last digit in key is retry count in case of SIDEBAND glitch
+
+     set rlstbl "apm-dhcp-${myIP}-[expr {[clock clicks] & 0x1f}]"
+     set tgt "${sid}-${dhcp_ip}-${dhcp_svr}-${dhcp_addr}-2"
+     if {$static::apm_dhcp_debug} {
+      log local0.info "table set -subtable $rlstbl '${tgt}' msg ${lease} ${lease}"
+     }
+     table set -subtable $rlstbl $tgt $msg $lease $lease
+
+ ################################################################
+ ## End of 414420/etc workaround (more below in CLIENT_ACCEPTED).
+ ################################################################
+
+    } else {
+     table delete "dhcp_state_${xid}"
+    }
+
+    ACCESS::session data set session.dhcp.message $opt_msg
+    ACCESS::session data set session.dhcp.xid $xid
+    ACCESS::session data set session.dhcp.hwx "${ht}${chaddr}"
+    ACCESS::session data set session.dhcp.hex_client_id $client_id
+   }
+  } ; #dhcp_addr
+ } ; #switch agent_id
+}
+
+
+###############################################################
+## When TMOS issue ID 414420 and LTM session-table problems are
+# fixed we can drop the stuff below and just release IP's from
+# ACCESS_SESSION_CLOSED
+###############################################################
+
+when CLIENT_ACCEPTED {
+  set myIP [IP::local_addr]
+
+  # Oooh, I hate needing this next block!
+  if {[table lookup "apm-dhcp-counter"] eq ""} {
+   # cannot initialize lifetime/timeout using "table incr"
+   # and cannot touch table in RULE_INIT event
+   table set "apm-dhcp-counter" 0 indefinite indefinite
+  }
+
+  if {[set nonce [table incr "apm-dhcp-counter"]] > 0x3fffffff} {
+   set nonce 0
+   table set "apm-dhcp-counter" $nonce indefinite indefinite
+  }
+
+  for {set slot 0} {$slot < 32} {incr slot} { lappend slots $slot }
+  foreach {slot} $slots {
+   set rlstbl "apm-dhcp-${myIP}-${slot}"
+   if {[set pal [table set -excl "lock-${rlstbl}" $nonce $static::apm_dhcp_slot_intvl $static::apm_dhcp_slot_intvl]] == $nonce} {
+    if {$static::apm_dhcp_debug} {
+     # log local0.info "${nonce} got lock; calling dhcp_sweep ${rlstbl} ${nonce}"
+    }
+    call dhcp_sweep $rlstbl $nonce $static::apm_dhcp_debug
+   } elseif {$static::apm_dhcp_debug} {
+    log local0.info "${nonce} requested lock on ${rlstbl} but ${pal} has lock"
+   }
+  }
+}
+
+proc dhcp_sweep {rlstbl nonce debug} {
+ set count [llength [set targets [table keys -subtable $rlstbl]]]
+ # if {$debug} { log local0.info "dhcp_sweep ${nonce}: ${count} keys in ${rlstbl}" }
+ if {$count < 1} { return }
+
+ set rex {([0-9A-Fa-f]+)-([0-9.]+)-([0-9.]+)-([0-9.]+)-([0-9])}
+ set finished [list]
+ foreach {tgt} $targets {
+  set msg [table lookup -subtable $rlstbl $tgt]
+  if {[set msglen [string length $msg]] < 244} {
+   log local0.err "dhcp_sweep ${nonce}: in ${rlstbl} msg for ${tgt} too short: ${msglen}"
+   lappend finished $tgt ; # huh? stunted msg?
+   continue
+  }
+
+  set sid [set dhcp_ip [set dhcp_svr [set dhcp_addr ""]]] ; set tries -1
+  if {![regexp {([0-9A-Fa-f]+)-([0-9.]+)-([0-9.]+)-([0-9.]+)-([0-9])} $tgt junk sid dhcp_ip dhcp_svr dhcp_addr tries] ||
+      ($tries < 1)} {
+   log local0.err "dhcp_sweep ${nonce}: ${rlstbl} invalid key='${tgt}'"
+   lappend finished $tgt
+   continue
+  }
+  set xid [string range $sid end-7 end]
+  if {[ACCESS::session exists $sid]} {
+   if {$debug} {
+    log local0.info "dhcp_sweep ${nonce}: session ${xid} still exists-- will NOT release DHCP IP"
+   }
+   continue
+  }
+
+  if {$debug} {
+   log local0.info "dhcp_sweep ${nonce}: placing RELEASE of ${dhcp_addr} to ${dhcp_svr} for ${xid} into chute ${dhcp_ip}"
+  }
+  set sand [table lifetime -subtable $rlstbl -remaining $tgt]
+  table set -subtable "dhcp-chute-${dhcp_ip}" $tgt $msg $sand $sand
+  lappend finished $tgt
+ }
+ foreach {tgt} $finished { table delete -subtable $rlstbl $tgt }
+} ; #proc dhcp_sweep
+
+#bottom of file
+} ; #end of ir_apm_dhcp_policy
+
+
+set irule_list [list "ir_apm_dhcp" "ir_apm_dhcp_policy"]
+
+#------------------------------------------------------------
+
+
+# update iRules to config
+foreach {ir} $irule_list {
+ regsub -all {@@DEBUG@@} [set [set ir]] ${::log__debug} patched
+ set irname "/Common/[string map [list "_" "-"] $ir]"
+
+ lnew c "create ltm rule ${irname} { ${patched} }"
+ iapp::conf [join $c]
+}
+
+
+# AFM network-firewall policy, if needed
+set fw_dfl_policy "" ; #default 'fw-enforced-policy' for virtuals
+if {[iapp::get_provisioned afm]} {
+ set policy "/Common/__DHCP-for-APM-accept-UDP"
+ lnew c "create security firewall policy ${policy} {"
+  lappend c "rules replace-all-with {"
+   lappend c "ok-udp { ip-protocol udp action accept }"
+  lappend c "}"
+ lappend c "}"
+ iapp::conf [join $c]
+ set fw_dfl_policy "fw-enforced-policy ${policy}"
+}
+
+
+# create required UDP profile
+lnew c "create ltm profile udp /Common/__DHCP-for-APM"
+lappend c "idle-timeout 0"
+iapp::conf [join $c]
+
+
+# create requested APM-DHCP (UDP) virtual servers
+set ctr 0
+foreach {row} [scan_APL_table "::vs__vs" {ip vlans}] {
+ foreach {ip vlans} $row { break }
+  if {$ip eq ""} { continue }
+  if {($ip eq "*") ||
+      ([string first "/" $ip] >= 0) ||
+      ([string first ":" $ip] >= 0)} {
+   fail "APM-DHCP virtual server requires IPv4 address"
+  }
+
+  lnew c "create ltm virtual __DHCP-for-APM-${ctr}"
+  lappend c "ip-protocol udp"
+  lappend c "destination [iapp::destination $ip 67]"
+  if {[lsearch -exact $vlans "/#all#"] < 0} {
+   lappend c "vlans-enabled"
+   lappend c "vlans replace-all-with { [join $vlans] }"
+  } else {
+   lappend c "vlans-disabled vlans none"
+  }
+  lappend c "profiles replace-all-with { /Common/__DHCP-for-APM }"
+  lappend c "rules { /Common/ir-apm-dhcp }"
+  lappend c ${fw_dfl_policy}
+  lappend c "address-status no"
+  lappend c "description 'Handles DHCP protocol traffic for APM'"
+  iapp::conf [join $c]
+
+  incr ctr
+}
+
+iapp::template end
+            }
+            macro {
+            }
+            presentation {
+optional ("hide" == "always") {
+ section hidden {
+    string my_partition display "small" default tcl {
+        return [tmsh::pwd]
+        # working dir changes to app folder upon first save
+    }
+ }
+}
+
+ section intro {
+    message welcome "This iApp helps you get IP addresses for APM VPN/Network Access tunnels from DHCP.  It creates the APM-DHCP virtual server(s) needed to communicate with your DHCP server(s) and installs the special iRule you will invoke from an APM (Session) Access Policy to request an IP address.  You may also use it turn APM DHCP debugging on and off."
+    message welcome2 "To view documentation for this solution, click on the Help tab on the left side of this page (beneath the f5 logo).  More extensive documentation with screenshots is available from f5 DevCentral."
+    optional (hidden.my_partition != "/Common") {
+        message partition_warn "This iApp may only be configured in partition /Common."
+    }
+    choice help display "xxlarge" {
+        "No, do not show inline help" => "hide",
+        "Yes, show inline help" => "show"
+    }
+ }
+
+optional ( (hidden.my_partition == "/Common") ) {
+ section vs {
+    table vs {
+        string ip display "medium" validator "ipaddress" default ""
+        choice vlans display "xlarge" default tcl {
+            return "(all VLANs)\t/#all#"
+        } tcl {
+            set ::choices "(all VLANs)\t/#all#\n[iapp::get_items net vlan]"
+            return [iapp::safe_display ::choices]
+        }
+    }
+    optional (intro.help == "show") {
+        message vs_help "You need at least one APM-DHCP virtual server to exchange DHCP protocol messages with the DHCP server(s) for your network.  If your DHCP server(s) support client subnet selection, a single APM-DHCP virtual server is sufficient.  Otherwise, define an APM-DHCP virtual server for each subnet on which you expect to lease IP addresses from DHCP.  For example, if you wish to obtain DHCP addresses on the 192.0.5.0/24 subnet (e.g., client addresses 192.0.5.10--192.0.5.250), define here an APM-DHCP virtual server on that subnet (e.g., virtual-server address 192.0.5.7).  Define another APM-DHCP virtual server for each additional DHCP-client-address subnet.  (The address of each APM-DHCP virtual server must be outside the range of DHCP client addresses, though on the same subnet.)  You may optionally limit a APM-DHCP virtual server to listen on one VLAN."
+        message vs_help2 "You do not need a BIG-IP Self IP address on each DHCP-client-address subnet so long as your network infrastructure routes packets for every client-address subnet to the BIG-IP (that is, your network infrastructure must see your BIG-IP as a gateway to any subnet on which you expect to lease DHCP addresses).  A APM-DHCP virtual server may share the address of a BIG-IP Self IP subject to the caveats in F5 Solution Note K13896."
+    }
+ }
+
+ section log {
+    choice debug display "xxlarge" {
+        "No. Log only errors" => "false",
+        "Yes. Log debugging info as well as errors" => "true"
+    }
+    optional (intro.help == "show") {
+        message debug_help "Log messages from APM DHCP iRules will appear in the LTM log.  Errors are always logged.  You may optionally log debugging messages.  It is not recommended to log debugging messages during normal operations."
+    }
+ }
+}
+
+text {
+    hidden "Hidden ASO Variables"
+    hidden.my_partition "current partition?"
+
+    intro "DHCP For APM Solution by Mark Quevedo (version 3d, 2018-04-19)"
+    intro.welcome "Introduction"
+    intro.welcome2 ""
+    intro.partition_warn "WARNING"
+    intro.help "Do you want to see inline help?"
+
+    vs "APM-DHCP Virtual Server Configuration"
+    vs.vs "APM-DHCP virtual servers"
+    vs.vs.ip "IP address"
+    vs.vs.vlans "VLAN"
+    vs.vs_help ""
+    vs.vs_help2 ""
+
+    log "General Configuration"
+    log.debug "Do you want to log DHCP debugging messages?"
+    log.debug_help ""
+}
+            }
+            role-acl { admin }
+            run-as none
+        }
+    }
+    description "DHCP for APM VPN/Network Access Support"
+    ignore-verification false
+    requires-bigip-version-max none
+    requires-bigip-version-min 10.0.0
+    requires-modules { ltm }
+    signing-key none
+    tmpl-checksum none
+    tmpl-signature none
+}

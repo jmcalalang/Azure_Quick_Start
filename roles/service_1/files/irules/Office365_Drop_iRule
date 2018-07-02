@@ -1,0 +1,26 @@
+#    iRule used to block Office 365 redirected users via Data Group "whitelist_country_codes_dg"
+#    Data Group needs to be a "String" format, with capital letter Sting country codes, example "US"
+#    Data Group "Values" not required
+
+when HTTP_REQUEST {
+
+#    Use for testing: un-comment out "header insert" line, comment out "header exists" and second to last bracket
+#    HTTP::header insert "X-MS-Forwarded-Client-IP" "156.74.250.72"
+    if { [HTTP::header exists "X-MS-Forwarded-Client-IP"] } {
+        set static::whitelist_dg "whitelist_country_codes_dg"
+        set true_address "[HTTP::header value "X-MS-Forwarded-Client-IP"]"
+        set country "[whereis $true_address country]"
+
+    if {([class match $country equals $static::whitelist_dg])} {
+        set allowed "Yes"
+        } else {
+        set allowed "No"
+        }
+
+    if {$allowed == "No"} {
+        drop
+        }
+
+    log local0. "X-MS-Forwarded-Client-IP Header Detected - Header value is [HTTP::header X-MS-Forwarded-Client-IP], Country code is [whereis $true_address country], Allowed is $allowed"
+    }
+}
