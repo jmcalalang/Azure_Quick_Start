@@ -17,12 +17,12 @@ iControl LX Requirements:
   BIGIP iControl LX
 
 
-
+:todo:
 # I have a problem swapping between deployments.
 ## this needs to be addressed before the helper sript
   - Network names are hardcoded
   - dns names for deployed instances
-  - single nic port for mgmt is 8443
+  - single nic port for mgmt is 8443, i think i can make this a variable...
 
 
 FQDN for AS3
