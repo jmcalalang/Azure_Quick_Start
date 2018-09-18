@@ -11,7 +11,7 @@
 
 - name: Add an iAppLX Package for Application Services 3
   bigip_iapplx_package:
-    package: "{{ role_path }}/files/f5-appsvcs-3.1.0-3.noarch.rpm"
+    package: "{{ role_path }}/files/f5-appsvcs-3.4.0-2.noarch.rpm"
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
