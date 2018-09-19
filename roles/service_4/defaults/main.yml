@@ -4,9 +4,9 @@
 
 #module parameters
 serviceName: "Service4"
-frontEnd: "10.128.10.28"
+frontEnd: "10.128.10.29"
 backEndMember1IP: "10.128.20.4"
-backEndMember1Port: "82"
+backEndMember1Port: "83"
 backEndMember2IP: "10.128.20.4"
-backEndMember2Port: "102"
+backEndMember2Port: "84"
 restrictedSrcAddress: "*"
