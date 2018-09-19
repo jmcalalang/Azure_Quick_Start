@@ -42,7 +42,7 @@
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
     state: present
-    pool: "{{ serviceName }}"_pl
+    pool: "{{ serviceName }}_pl"
     partition: "{{ serviceName }}"
     host: "{{ backEndMember1IP }}"
     port: "{{ backEndMember1Port }}"
