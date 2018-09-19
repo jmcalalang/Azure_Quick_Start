@@ -52,14 +52,10 @@
         priority: 100
         direction: Inbound
 
-- name: Prepare the AS3 declaration
-  template: src="{{ role_path }}/files/service_3_template.json" dest="{{ role_path }}/files/service_3_declaration.json"
-  delegate_to: localhost
-
 - name: Create or update Service 3; AS3 Build Simple HTTP Application
   delegate_to: localhost
   uri:
-    body: "{{ lookup('file','{{ role_path }}/files/' + 'service_3_declaration.json') }}"
+    body: "{{ lookup('file','service_3.json') | to_json }}"
     body_format: json
     headers:
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
