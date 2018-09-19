@@ -34,6 +34,22 @@
   set_fact:
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
+- name: Prepare the AS3 declaration
+  template: src="{{ role_path }}/files/service_3_template.json" dest="{{ role_path }}/files/service_3_declaration.json"
+  delegate_to: localhost
+
+- name: Create or update Service 3; AS3 Build Simple HTTP Application
+  delegate_to: localhost
+  uri:
+    body: "{{ lookup('file','{{ role_path }}/files/' + 'service_3_declaration.json') }}"
+    body_format: json
+    headers:
+      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+    method: POST
+    status_code: 200
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    validate_certs: no
+
 - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
   azure_rm_securitygroup:
     tenant: "{{ tenantId }}"
@@ -51,22 +67,6 @@
         access: Allow
         priority: 100
         direction: Inbound
-
-- name: Prepare the AS3 declaration
-  template: src="{{ role_path }}/files/service_3_template.json" dest="{{ role_path }}/files/service_3_declaration.json"
-  delegate_to: localhost
-
-- name: Create or update Service 3; AS3 Build Simple HTTP Application
-  delegate_to: localhost
-  uri:
-    body: "{{ lookup('file','{{ role_path }}/files/' + 'service_3_declaration.json') }}"
-    body_format: json
-    headers:
-      X-F5-Auth-Token: "{{ bigip_auth_token }}"
-    method: POST
-    status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
-    validate_certs: no
 
 - name: Webhook Notification to Teams for Build of Service 3
   delegate_to: localhost
