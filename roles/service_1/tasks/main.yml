@@ -9,9 +9,9 @@
   delegate_to: localhost
   name: "Wait a maximum of 300 seconds for BIG-IP to be ready to take configuration"
 
-- name: Create partition "Service1" using the default route domain
+- name: Create partition {{ serviceName }} using the default route domain
   bigip_partition:
-    name: Service1
+    name: "{{ serviceName }}"
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
@@ -19,15 +19,15 @@
     state: present
   delegate_to: localhost
 
-- name: Create pool "service_1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Create pool {{ serviceName }}_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
     state: present
-    name: service_1_pl
-    partition: Service1
+    name: "{{ serviceName }}_pl"
+    partition: "{{ serviceName }}"
     lb_method: least-connections-member
     slow_ramp_time: 120
     monitor_type: single
@@ -35,22 +35,39 @@
       - /Common/http
   delegate_to: localhost
 
-- name: Add pool member "10.128.20.4" to pool service_1_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Add pool member {{ backEndMember1IP }} to pool {{ serviceName }}_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool_member:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
     state: present
-    pool: service_1_pl
-    partition: Service1
-    host: 10.128.20.4
-    port: 80
+    pool: "{{ serviceName }}"_pl
+    partition: "{{ serviceName }}"
+    host: "{{ backEndMember1IP }}"
+    port: "{{ backEndMember1Port }}"
     description: web server
     connection_limit: 100
     rate_limit: 50
     ratio: 2
   delegate_to: localhost
+
+- name: Add virtual server "{{ serviceName }}_vs" for {{ serviceName }} on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+  bigip_virtual_server:
+    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    user: "{{ BIGIPadminUsername }}"
+    password: "{{ BIGIPadminPassword }}"
+    validate_certs: false
+    state: present
+    partition: "{{ serviceName }}"
+    name: "{{ serviceName }}_vs"
+    destination: "{{ frontEnd }}"
+    port: "{{ frontEndClear }}"
+    pool: "{{ serviceName }}_pl"
+    snat: Automap
+    description: "{{ serviceName }}"
+    profiles:
+      - http
 
 - name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
   azure_rm_securitygroup:
@@ -71,26 +88,9 @@
     subscription_id: "{{ subscriptionId }}"
     tenant: "{{ tenantId }}"
 
-- name: Add virtual server "service_1_vs" for Service 1 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
-  bigip_virtual_server:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
-    user: "{{ BIGIPadminUsername }}"
-    password: "{{ BIGIPadminPassword }}"
-    validate_certs: false
-    state: present
-    partition: Service1
-    name: service_1_vs
-    destination: 10.128.10.26
-    port: 80
-    pool: service_1_pl
-    snat: Automap
-    description: Service_1
-    profiles:
-      - http
-
-- name: Webhook Notification to Teams for Build of Service 1
+- name: Webhook Notification to Teams for Build of {{ serviceName }}
   uri:
-    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "Service 1 has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **Service 1 Button** to be taken to the Service 1 Application", "potentialAction": [{ "@type": "OpenUri", "name": "Service 1", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}0.{{location}}.cloudapp.azure.com" }] }] }
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "{{ serviceName }} has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **{{ serviceName }} Button** to be taken to the {{ serviceName }} Application", "potentialAction": [{ "@type": "OpenUri", "name": "{{ serviceName }}", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}0.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200
