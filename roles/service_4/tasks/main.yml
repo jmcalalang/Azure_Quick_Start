@@ -24,7 +24,7 @@
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
-    name: {{ serviceName }}_WAF
+    name: "{{ serviceName }}_WAF"
     file: "{{ wafPolicy }}"
     active: yes
     state: present
