@@ -8,7 +8,7 @@
     <last_change>Policy Building Settings Policy Building Settings [update]: Internal Statistics have been updated { audit: policy = /Common/linux-high, component = Policy Builder }</last_change>
   </policy_version>
   <encoding>utf-8</encoding>
-  <description>imported fom http://cdn.f5.com/product/blackbox/aws/asm-policy-linux.tar.gz</description>
+  <description>imported from http://cdn.f5.com/product/blackbox/aws/asm-policy-linux.tar.gz</description>
   <case_insensitive>true</case_insensitive>
   <owa>false</owa>
   <protocol_free>true</protocol_free>
