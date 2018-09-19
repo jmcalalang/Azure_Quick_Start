@@ -33,7 +33,7 @@
 
 - name: Add an iAppLX Package for Application Services 3
   bigip_iapplx_package:
-    package: "https://github.com/F5Networks/f5-appsvcs-extension/raw/master/dist/f5-appsvcs-3.4.0-2.noarch.rpm"
+    package: "{{ role_path }}/files/f5-appsvcs-3.4.0-2.noarch.rpm"
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
@@ -56,22 +56,6 @@
   set_fact:
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
-- name: Prepare the AS3 declaration
-  template: src="{{ role_path }}/files/service_4_template.json" dest="{{ role_path }}/files/service_4_declaration.json"
-  delegate_to: localhost
-
-- name: Create or update Service 4 (AS3 Build HTTPS/WAF Application) from AS3
-  delegate_to: localhost
-  uri:
-    body: "{{ lookup('file','{{ role_path }}/files/' + 'service_4_declaration.json') }}"
-    body_format: json
-    headers:
-      X-F5-Auth-Token: "{{ bigip_auth_token }}"
-    method: POST
-    status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
-    validate_certs: no
-
 - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
   azure_rm_securitygroup:
     tenant: "{{ tenantId }}"
@@ -89,6 +73,18 @@
         access: Allow
         priority: 101
         direction: Inbound
+
+- name: Deploy Service 4 (AS3 Build HTTPS/WAF Application) from AS3
+  delegate_to: localhost
+  uri:
+    body: "{{ lookup('file','service_4.json') | to_json }}"
+    body_format: json
+    headers:
+      X-F5-Auth-Token: "{{ bigip_auth_token }}"
+    method: POST
+    status_code: 200
+    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    validate_certs: no
 
 - name: Webhook Notification to Teams for Build of Service 4
   delegate_to: localhost
