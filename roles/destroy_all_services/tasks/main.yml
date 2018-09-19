@@ -34,9 +34,9 @@
     url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Destroy Service 2 from f5.http iApp on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service2 from f5.http iApp on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_iapp_service:
-    name: Service_2
+    name: Service2
     password: "{{BIGIPadminPassword}}"
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: absent
@@ -55,7 +55,7 @@
     name: 10.128.20.4
   delegate_to: localhost
 
-- name: Destroy Service 1 virtual server "Service1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service1 virtual server "Service1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
@@ -66,7 +66,7 @@
     partition: Service1
   delegate_to: localhost
 
-- name: Destroy Service 1 pool "Service1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service1 pool "Service1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
@@ -77,7 +77,7 @@
     partition: Service1
   delegate_to: localhost
 
-- name: Destroy Service 1 node {{application_server_name}}
+- name: Destroy Service1 node {{application_server_name}}
   bigip_node:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
