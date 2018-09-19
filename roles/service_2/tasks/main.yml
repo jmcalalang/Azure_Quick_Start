@@ -41,7 +41,7 @@
 - name: Create or update {{ serviceName }}; f5.http iapp Build Advanced HTTPS/WAF Application
   delegate_to: localhost
   uri:
-    body: "{{ lookup('file','{{ role_path }}/files/' + '{{ serviceName }}_declaration.yml') }}"
+    body: "{{ (lookup('file','{{ serviceName }}_declaration.yml') | from_yaml) }}"
     body_format: json
     headers:
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
