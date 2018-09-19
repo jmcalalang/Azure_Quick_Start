@@ -51,7 +51,7 @@
 				},
 				"HTTP_Profile": {
 					"class": "HTTP_Profile",
-					"adcName": "Service4",
+					"adcName": "{{ serviceName }}",
 					"xForwardedFor": true
 				},
 				"HTTP_Compress": {
