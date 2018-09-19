@@ -35,13 +35,13 @@
   delegate_to: localhost
 
 - name: Prepare the iApp declaration
-  template: src="{{ role_path }}/files/iapp_http_template.yml" dest="{{ role_path }}/files/{{ serviceName }}_declaration.json"
+  template: src="{{ role_path }}/files/iapp_http_template.yml" dest="{{ role_path }}/files/{{ serviceName }}_declaration.yml"
   delegate_to: localhost
 
 - name: Create or update {{ serviceName }}; f5.http iapp Build Advanced HTTPS/WAF Application
   delegate_to: localhost
   uri:
-    body: "{{ lookup('file','{{ role_path }}/files/' + '{{ serviceName }}_declaration.json') }}"
+    body: "{{ lookup('file','{{ role_path }}/files/' + '{{ serviceName }}_declaration.yml') }}"
     body_format: json
     headers:
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
