@@ -55,25 +55,25 @@
     name: 10.128.20.4
   delegate_to: localhost
 
-- name: Destroy Service 1 virtual server "service_1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service 1 virtual server "Service1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
     state: absent
-    name: service_1_vs
+    name: Service1_vs
     partition: Service1
   delegate_to: localhost
 
-- name: Destroy Service 1 pool "service_1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service 1 pool "Service1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
     server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
     state: absent
-    name: service_1_pl
+    name: Service1_pl
     partition: Service1
   delegate_to: localhost
 
@@ -88,7 +88,7 @@
     name: 10.128.20.4
   delegate_to: localhost
 
-- name: Remove Service 1 partition "Service1"
+- name: Remove Service1 partition "Service1"
   bigip_partition:
     name: Service1
     password: "{{BIGIPadminPassword}}"
