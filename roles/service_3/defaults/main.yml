@@ -6,7 +6,7 @@
 serviceName: "Service3"
 frontEnd: "10.128.10.28"
 backEndMember1IP: "10.128.20.4"
-backEndMember1Port: 82
+backEndMember1Port: "82"
 backEndMember2IP: "10.128.20.4"
-backEndMember2Port: 102
+backEndMember2Port: "102"
 restrictedSrcAddress: "*"

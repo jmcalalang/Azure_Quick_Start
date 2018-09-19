@@ -26,13 +26,13 @@
 						"http"
 					],
 					"members": [{
-							"servicePort": "{{ backEndMember1Port }}",
+							"servicePort": {{ backEndMember1Port }},
 							"serverAddresses": [
 								"{{ backEndMember1IP }}"
 							]
 						},
 						{
-							"servicePort": "{{ backEndMember2Port }}",
+							"servicePort": {{ backEndMember2Port }},
 							"serverAddresses": [
 								"{{ backEndMember2IP }}"
 							]
