@@ -35,7 +35,7 @@
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
 - name: Prepare the AS3 declaration
-  template: src="{{ role_path }}/files/http_template.json" dest="{{ role_path }}/files/{{ serviceName }}_declaration.json"
+  template: src="{{ role_path }}/files/as3_http_template.json" dest="{{ role_path }}/files/{{ serviceName }}_declaration.json"
   delegate_to: localhost
 
 - name: Create or update {{ serviceName }}; AS3 Build Simple HTTP Application

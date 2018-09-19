@@ -3,4 +3,12 @@
 # use parent_parameters.yml for secure variables (ansible-vault)
 
 #module parameters
+serviceName: "Service2"
+frontEnd: "10.128.10.27"
+frontEndClear: "80"
+frontEndSecure: "443"
+backEndMember1IP: "10.128.20.4"
+backEndMember1Port: "81"
+backEndMember2IP: "10.128.20.4"
+backEndMember2Port: "101"
 restrictedSrcAddress: "*"

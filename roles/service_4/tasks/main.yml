@@ -57,7 +57,7 @@
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
 - name: Prepare the AS3 declaration
-  template: src="{{ role_path }}/files/https_waf_template.json" dest="{{ role_path }}/files/{{ serviceName }}_declaration.json"
+  template: src="{{ role_path }}/files/as3_https_waf_template.json" dest="{{ role_path }}/files/{{ serviceName }}_declaration.json"
   delegate_to: localhost
 
 - name: Create or update {{ serviceName }} (AS3 Build HTTPS/WAF Application) from AS3
