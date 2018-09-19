@@ -27,7 +27,7 @@
 					},
 					"serverTLS": "TLS_Offload",
 					"policyWAF": {
-						"bigip": "/Common/Service_4_WAF"
+						"bigip": "/Common/{{ serviceName }}_WAF"
 					}
 				},
 				"{{ serviceName }}_pl": {
