@@ -1,6 +1,0 @@
-# service_2 specific parameters
-
-# use parent_parameters.yml for secure variables (ansible-vault)
-
-#module parameters
-restrictedSrcAddress: "*"
