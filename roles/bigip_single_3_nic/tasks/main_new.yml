@@ -1,0 +1,50 @@
+# Create or update a template deployment based on uris and template link
+# for a single BIGIP with 3-nic's
+
+- name: Download azuredeploy.parameters.json
+  get_url:
+    url: " {{ bigip_parameters_link }} "
+    dest: " {{ role_path }}/files/azuredeploy.parameters.json "
+    mode: 0440
+
+- name: Prepare the Azure ARM declaration
+  template: src="{{ role_path }}/files/azuredeploy.parameters.json" dest="{{ role_path }}/files/{{ role_name }}_declaration.json"
+  delegate_to: localhost
+
+- name: "Run F5 ARM Template to build a single BIG-IP with 3 NICs"
+  azure_rm_deployment:
+    subscription_id: "{{ subscriptionId }}"
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    template_link: "{{bigip_template_link}}"
+    parameters_link: "{{ role_path }}/files/{{ role_name }}_declaration.json"
+    resource_group_name: "{{resource_group_name}}"
+    location: "{{location}}"
+    state: present
+
+- name: "Webhook Notification to Teams for Build of BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com"
+  delegate_to: localhost
+  uri:
+    body:
+      ? "@context"
+      : "http://schema.org/extensions"
+      ? "@type"
+      : MessageCard
+      potentialAction:
+        -
+          ? "@type"
+          : OpenUri
+          name: "BIG-IP "
+          targets:
+            -
+              os: default
+              uri: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+      text: "Click **BIG-IP Button** to be taken to the BIG-IP!"
+      themeColor: 0072C6
+      title: "New BIG-IP Environment Created in Resource Group {{resource_group_name}}"
+    body_format: json
+    method: POST
+    status_code: 200
+    url: "{{teams_webhook}}"
+    validate_certs: false
