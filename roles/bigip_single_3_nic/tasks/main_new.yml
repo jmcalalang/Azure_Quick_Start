@@ -4,7 +4,7 @@
 - name: Download azuredeploy.parameters.json
   get_url:
     url: " {{ bigip_parameters_link }} "
-    dest: " {{ role_path }}/files/azuredeploy.parameters.json "
+    dest: " {{ role_path }}/files/ "
     mode: 0440
 
 - name: Prepare the Azure ARM declaration
