@@ -6,6 +6,7 @@
 allowUsageAnalytics: "Yes"
 bigIpVersion: "latest"
 bigip_template_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/standalone/3nic/existing-stack/bigiq/azuredeploy.json"
+bigip_parameters_link: "https://raw.githubusercontent.com/F5Networks/f5-azure-arm-templates/master/supported/standalone/3nic/existing-stack/bigiq/azuredeploy.parameters.json"
 customImage: "OPTIONAL"
 dnsLabel: "{{resource_group_name}}"
 externalIpAddressRangeStart: "10.128.10.25"
