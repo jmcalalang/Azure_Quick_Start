@@ -25,7 +25,7 @@
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqHost01}}-mgmt-pip0"
-    primary: true
+        primary: yes
 
 - name: Create Server {{bigIqHost01}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
