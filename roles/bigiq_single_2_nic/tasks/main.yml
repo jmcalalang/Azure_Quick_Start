@@ -18,7 +18,7 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqHost01}}01"
+    name: "{{bigIqHost01}}_mgmt_nic"
     virtual_network: "{{virtual_network_name}}"
     subnet: "management"
     ip_configurations:
@@ -33,13 +33,13 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqHost01}}02"
+    name: "{{bigIqHost01}}_external_nic"
     virtual_network: "{{virtual_network_name}}"
     subnet: "external"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
+#        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
 
 - name: Edit Security Group {{bigIqHost01}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
   azure_rm_securitygroup:
