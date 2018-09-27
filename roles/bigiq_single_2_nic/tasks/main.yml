@@ -1,15 +1,15 @@
 # Create or update a Application Virtual Machine
 
-- name: Create Server {{bigIqHost01}} Storage Account in {{resource_group_name}}
-  azure_rm_storageaccount:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
-    location: "{{location}}"
-    resource_group: "{{resource_group_name}}"
-    name: "{{bigIqHost01_storage_account}}"
-    account_type: Premium_LRS
+#- name: Create Server {{bigIqHost01}} Storage Account in {{resource_group_name}}
+#  azure_rm_storageaccount:
+#    tenant: "{{ tenantId }}"
+#    client_id: "{{ clientId }}"
+#    secret: "{{ servicePrincipalSecret }}"
+#    subscription_id: "{{ subscriptionId }}"
+#    location: "{{location}}"
+#    resource_group: "{{resource_group_name}}"
+#    name: "{{bigIqHost01_storage_account}}"
+#    account_type: Premium_LRS
 
 - name: Create Server {{bigIqHost01}} NIC_1 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -39,7 +39,7 @@
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIqHost01}}--pip0"
+        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
 
 - name: Edit Security Group {{bigIqHost01}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
   azure_rm_securitygroup:
@@ -83,9 +83,9 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqHost01}}"
     vm_size: Standard_D4s_v3
-    storage_account: "{{bigIqHost01_storage_account}}"
-    storage_container: "{{bigIqHost01}}001"
-    storage_blob: "{{bigIqHost01}}001.vhd"
+#    storage_account: "{{bigIqHost01_storage_account}}"
+#    storage_container: "{{bigIqHost01}}001"
+#    storage_blob: "{{bigIqHost01}}001.vhd"
     admin_username: "{{bigIqHost01Admin}}"
     admin_password: "{{bigIqHost01Password}}"
     network_interfaces: "{{bigIqHost01}}01"
@@ -95,6 +95,10 @@
       publisher: f5-networks
       sku: f5-bigiq-virtual-edition-byol
       version: latest
+    plan:
+      name: f5-bigiq-virtual-edition-byol
+      product: f5-big-iq
+      publisher: f5-networks
 
 - name: Webhook Notification to Teams for Build of Server {{bigIqHost01}}
   delegate_to: localhost
