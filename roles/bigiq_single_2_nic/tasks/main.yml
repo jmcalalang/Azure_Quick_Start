@@ -20,7 +20,7 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqHost01}}01"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "{{managementSubnetName}}"
+    subnet: "management"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
@@ -35,7 +35,7 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqHost01}}02"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "{{externalSubnetName}}"
+    subnet: "external"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
