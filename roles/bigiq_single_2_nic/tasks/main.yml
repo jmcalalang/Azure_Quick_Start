@@ -25,7 +25,7 @@
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqHost01}}-mgmt-pip0"
-        primary: yes
+        primary: true
 
 - name: Create Server {{bigIqHost01}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -42,36 +42,47 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqHost01}}-ext-pip0"
 
-- name: Edit Security Group {{bigIqHost01}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
+- name: Edit Security Group {{bigIqHost01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
       secret: "{{ servicePrincipalSecret }}"
       subscription_id: "{{ subscriptionId }}"
       resource_group: "{{resource_group_name}}"
-      name: "{{bigIqHost01}}"
+      name: "{{bigIqHost01}}_mgmt_nic"
       purge_rules: yes
       rules:
-          - name: 'AllowHTTP'
-            protocol: Tcp
-            source_address_prefix: 'VirtualNetwork'
-            destination_port_range: "80-84"
-            access: Allow
-            priority: 100
-            direction: Inbound
           - name: 'AllowHTTPS'
             protocol: Tcp
-            source_address_prefix: 'VirtualNetwork'
-            destination_port_range: "443-444"
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: "443"
             access: Allow
-            priority: 101
+            priority: 100
             direction: Inbound
           - name: 'AllowSSH'
             protocol: Tcp
             source_address_prefix: '{{restrictedSrcAddress}}'
             destination_port_range: 22
             access: Deny
-            priority: 102
+            priority: 101
+            direction: Inbound
+
+- name: Edit Security Group {{bigIqHost01}}_ext_nic in {{resource_group_name}} (Allow Management Access)
+  azure_rm_securitygroup:
+      tenant: "{{ tenantId }}"
+      client_id: "{{ clientId }}"
+      secret: "{{ servicePrincipalSecret }}"
+      subscription_id: "{{ subscriptionId }}"
+      resource_group: "{{resource_group_name}}"
+      name: "{{bigIqHost01}}_ext_nic"
+      purge_rules: yes
+      rules:
+          - name: 'AllowSSH'
+            protocol: Tcp
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: 22
+            access: Deny
+            priority: 101
             direction: Inbound
 
 - name: Create Server {{bigIqHost01}} Virtual Machine
