@@ -1,7 +1,7 @@
 ---
 
 ### Connection parameters
-bigiq_onboard_server: "{{bigIqHost02}}"
+bigiq_onboard_server: "{{bigIqHost02Address}}"
 bigiq_onboard_server_port: 443
 bigiq_onboard_user: "{{bigIqHost02Admin}}"
 bigiq_onboard_password: "{{bigIqHost02Password}}"
