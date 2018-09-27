@@ -86,7 +86,7 @@
     password: "{{ bigIqHost01Password }}"
     body:
       oldPassword: ""
-      newPassword: {{ bigIqHost01Password }}
+      newPassword: "{{ bigIqHost01Password }}"
     body_format: json
 
 - name: Exit Wizard {{bigIqHost01}}
