@@ -84,8 +84,9 @@
     user: root
     password: "{{ bigIqHost01Password }}"
     body:
-      oldPassword: ""
-      newPassword: "{{ bigIqHost01Password }}"
+      oldPassword: 
+      password: "{{ bigIqHost01Password }}"
+      password2: "{{ bigIqHost01Password }}"
     body_format: json
 
 - name: Exit Wizard {{bigIqHost01}}
