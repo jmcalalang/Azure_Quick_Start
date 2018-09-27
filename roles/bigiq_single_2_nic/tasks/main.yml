@@ -133,7 +133,7 @@
 - name: Webhook Notification to Teams for Build of Server {{bigIqHost01}}
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"Application Server {{bigIqHost01}} was created in Resource Group {{bigIqHost01}}!\"}"
+    body: "{\"text\": \"Application Server {{bigIqHost01}} was created in Resource Group {{resource_group_name}}!\"}"
     body_format: json
     method: POST
     status_code: 200
