@@ -13,8 +13,8 @@
   uri:
     url: "https://{{bigIqHost01Address}}/mgmt/shared/echo"
     validate_certs: no
-    user: "{{ bigiq_onboard_user }}"
-    password: "{{ bigiq_onboard_password }}"
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
 
 - name: License {{bigIqHost01}}
   uri:
