@@ -1,42 +1,101 @@
 ---
 
-- name: Setup provider
-  set_fact:
-    provider:
-      server: "{{ bigiq_onboard_server }}"
-      server_port: "{{ bigiq_onboard_server_port }}"
-      user: "{{ bigiq_onboard_user }}"
-      password: "{{ bigiq_onboard_password }}"
-      validate_certs: "{{ bigiq_onboard_validate_certs }}"
-      transport: "{{ bigiq_onboard_transport }}"
-
 - name: Wait for BIG-IQ to be available
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/info/system"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
+    url: "https://{{bigIqHost01Address}}/info/system"
+    validate_certs: no
   register: status
   until: status is success and status.json.available|bool
   retries: 10
   delay: 6
 
-- name: Test authentication
+- name: Test Authentication
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/echo"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/echo"
+    validate_certs: no
     user: "{{ bigiq_onboard_user }}"
     password: "{{ bigiq_onboard_password }}"
-  register: status
 
-- name: Check if system is setup
+- name: License {{bigIqHost01}}
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/system/setup"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
-    user: "{{ bigiq_onboard_user }}"
-    password: "{{ bigiq_onboard_password }}"
-  register: setup
+    url: "https://{{bigIqHost01Address}}/mgmt/tm/sys/license"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      command: "install"
+      registrationKey: "{{ bigIqHost01License }}"
+    body_format: json
 
-- include_tasks: setup-main.yaml
-  when: setup.json.isSystemSetup is not defined
+- name: Set {{bigIqHost01}} Personality
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/system/easy-setup"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      systemPersonality: "big_iq"
+    body_format: json
+
+- name: Execute easy-setup on {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/system/easy-setup"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      hostname: "{{bigIqHost01}}"
+      ntpServerAddresses: 0.pool.ntp.org
+    body_format: json
+
+- name: Set Master Key on {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
+
+- name: Set Admin Credentials {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/authz/users"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      name: "{{bigIqHostPassphrase}}"
+      oldPassword: "{{ bigIqHost01Password }}"
+      password: "{{ bigIqHost01Password }}"
+      password2: "{{ bigIqHost01Password }}"
+      encryptedPassword: null
+    body_format: json
+
+- name: Set Root Credentials {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/authn/root"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      oldPassword: ""
+      newPassword: {{ bigIqHost01Password }}
+    body_format: json
+
+- name: Exit Wizard {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/shared/system/setup"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      isSystemSetup: true
+    body_format: json
