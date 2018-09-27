@@ -88,7 +88,9 @@
 #    storage_blob: "{{bigIqHost01}}001.vhd"
     admin_username: "{{bigIqHost01Admin}}"
     admin_password: "{{bigIqHost01Password}}"
-    network_interface_names: "{{bigIqHost01}}_mgmt_nic","{{bigIqHost01}}_ext_nic"
+    network_interface_names:
+      - "{{bigIqHost01}}_mgmt_nic"
+      - "{{bigIqHost01}}_ext_nic"
     managed_disk_type: Premium_LRS
     image:
       offer: f5-big-iq
