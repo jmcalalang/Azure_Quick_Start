@@ -1,0 +1,7 @@
+---
+-
+  hosts: localhost
+  roles:
+    - bigiq_onboard_dcd
+  vars_files:
+    - /home/snops/f5-rs-azure/parent_parameters.yml
