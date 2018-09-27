@@ -69,7 +69,7 @@
     user: "{{ bigIqHost01Admin }}"
     password: "{{ bigIqHost01Password }}"
     body:
-      name: "{{bigIqHostPassphrase}}"
+      name: "{{ bigIqHost01Admin }}"
       oldPassword: "{{ bigIqHost01Password }}"
       password: "{{ bigIqHost01Password }}"
       password2: "{{ bigIqHost01Password }}"
@@ -81,7 +81,7 @@
     url: "https://{{bigIqHost01Address}}/mgmt/shared/authn/root"
     method: POST
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
+    user: root
     password: "{{ bigIqHost01Password }}"
     body:
       oldPassword: ""
