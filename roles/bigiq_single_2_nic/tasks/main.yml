@@ -33,13 +33,13 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqHost01}}_external_nic"
+    name: "{{bigIqHost01}}_ext_nic"
     virtual_network: "{{virtual_network_name}}"
     subnet: "external"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-#        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
+        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
 
 - name: Edit Security Group {{bigIqHost01}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
   azure_rm_securitygroup:
@@ -88,8 +88,8 @@
 #    storage_blob: "{{bigIqHost01}}001.vhd"
     admin_username: "{{bigIqHost01Admin}}"
     admin_password: "{{bigIqHost01Password}}"
-    network_interfaces: "{{bigIqHost01}}01"
-    network_interfaces: "{{bigIqHost01}}02"
+    network_interface_names: "{{bigIqHost01}}_mgmt_nic","{{bigIqHost01}}_ext_nic"
+    managed_disk_type: Premium_LRS
     image:
       offer: f5-big-iq
       publisher: f5-networks
