@@ -50,16 +50,16 @@
       hostname: "{{bigIqHost01}}.iq"
     body_format: json
 
-#- name: Set Master Key on {{bigIqHost01}}
-#  uri:
-#    url: "https://{{bigIqHost01Address}}/mgmt/cm/shared/secure-storage/masterkey"
-#    method: POST
-#    validate_certs: no
-#    user: "{{ bigIqHost01Admin }}"
-#    password: "{{ bigIqHost01Password }}"
-#    body:
-#      passphrase: "{{bigIqHostPassphrase}}"
-#    body_format: json
+- name: Set Master Key on {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
 
 - name: Set Admin Credentials {{bigIqHost01}}
   uri:
