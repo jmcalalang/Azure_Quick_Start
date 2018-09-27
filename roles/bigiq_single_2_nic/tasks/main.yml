@@ -136,7 +136,7 @@
     method: POST
     validate_certs: "{{ bigiq_onboard_validate_certs }}"
     user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Password }}"
     body:
       command: "install"
       registrationKey: "{{ bigIqHost01License }}"
