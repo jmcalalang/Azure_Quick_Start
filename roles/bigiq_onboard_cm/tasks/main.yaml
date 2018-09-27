@@ -76,18 +76,18 @@
       encryptedPassword: null
     body_format: json
 
-- name: Set Root Credentials {{bigIqHost01}}
-  uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/shared/authn/root"
-    method: POST
-    validate_certs: no
-    user: root
-    password: "{{ bigIqHost01Password }}"
-    body:
-      oldPassword: 
-      password: "{{ bigIqHost01Password }}"
-      password2: "{{ bigIqHost01Password }}"
-    body_format: json
+#- name: Set Root Credentials {{bigIqHost01}}
+#  uri:
+#    url: "https://{{bigIqHost01Address}}/mgmt/shared/authn/root"
+#    method: POST
+#    validate_certs: no
+#    user: root
+#    password: "{{ bigIqHost01Password }}"
+#    body:
+#      oldPassword:
+#      password: "{{ bigIqHost01Password }}"
+#      password2: "{{ bigIqHost01Password }}"
+#    body_format: json
 
 - name: Exit Wizard {{bigIqHost01}}
   uri:
