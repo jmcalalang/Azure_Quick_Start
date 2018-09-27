@@ -64,7 +64,7 @@
 - name: Set Admin Credentials {{bigIqHost01}}
   uri:
     url: "https://{{bigIqHost01Address}}/mgmt/shared/authz/users"
-    method: POST
+    method: PUT
     validate_certs: no
     user: "{{ bigIqHost01Admin }}"
     password: "{{ bigIqHost01Password }}"
