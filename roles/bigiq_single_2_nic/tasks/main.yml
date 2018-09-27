@@ -130,6 +130,18 @@
     settings: '{"commandToExecute": "set-basic-auth on"}'
     auto_upgrade_minor_version: true
 
+- name: License {{bigIqHost01}}
+  uri:
+    url: "https://{{bigIqHost01Address}}/mgmt/tm/sys/license"
+    method: POST
+    validate_certs: "{{ bigiq_onboard_validate_certs }}"
+    user: "{{ bigIqHost01Admin }}"
+    password: "{{ bigIqHost01Admin }}"
+    body:
+      command: "install"
+      registrationKey: "{{ bigIqHost01License }}"
+    body_format: json
+
 - name: Webhook Notification to Teams for Build of Server {{bigIqHost01}}
   delegate_to: localhost
   uri:
