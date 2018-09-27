@@ -39,8 +39,8 @@
     subnet: "external"
     ip_configurations:
       - name: ipconfig1
-      - private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIqHost01}}-external-pip0"
+        private_ip_allocation_method: Dynamic
+        public_ip_address_name: "{{bigIqHost01}}-ext-pip0"
 
 - name: Edit Security Group {{bigIqHost01}} in {{resource_group_name}} (Allow HTTP(S) Deny SSH)
   azure_rm_securitygroup:
