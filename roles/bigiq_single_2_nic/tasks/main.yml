@@ -134,7 +134,7 @@
   uri:
     url: "https://{{bigIqHost01Address}}/mgmt/tm/sys/license"
     method: POST
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
+    validate_certs: no
     user: "{{ bigIqHost01Admin }}"
     password: "{{ bigIqHost01Password }}"
     body:
