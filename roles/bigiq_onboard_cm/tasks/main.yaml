@@ -31,7 +31,7 @@
 - name: Set {{bigIqHost01}} Personality
   uri:
     url: "https://{{bigIqHost01Address}}/mgmt/shared/system/easy-setup"
-    method: POST
+    method: PUT
     validate_certs: no
     user: "{{ bigIqHost01Admin }}"
     password: "{{ bigIqHost01Password }}"
