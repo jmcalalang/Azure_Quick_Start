@@ -42,7 +42,7 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqHost01}}-ext-pip0"
 
-- name: Edit Security Group {{bigIqHost01}}_mgmt_nic in {{resource_group_name}} (Deny all Access)
+- name: Edit Security Group {{bigIqHost01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
@@ -67,7 +67,7 @@
             priority: 101
             direction: Inbound
 
-- name: Edit Security Group {{bigIqHost01}}_ext_nic in {{resource_group_name}} (Allow Management Access)
+- name: Edit Security Group {{bigIqHost01}}_ext_nic in {{resource_group_name}} (Deny All Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
