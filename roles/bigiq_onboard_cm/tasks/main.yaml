@@ -48,7 +48,6 @@
     password: "{{ bigIqHost01Password }}"
     body:
       hostname: "{{bigIqHost01}}.iq"
-      ntpServerAddresses: 0.pool.ntp.org
     body_format: json
 
 - name: Set Master Key on {{bigIqHost01}}
