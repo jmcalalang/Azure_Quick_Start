@@ -2,7 +2,7 @@
 
 - name: Wait for BIG-IQ to be available
   uri:
-    url: "https://{{bigIqHost01Address}}/info/system"
+    url: "https://{{bigIqCMAddress}}/info/system"
     validate_certs: no
   register: status
   until: status is success and status.json.available|bool
@@ -11,91 +11,91 @@
 
 - name: Test Authentication
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/shared/echo"
+    url: "https://{{bigIqCMAddress}}/mgmt/shared/echo"
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
 
-- name: License {{bigIqHost01}}
+- name: License {{bigIqCM}}
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/tm/sys/license"
+    url: "https://{{bigIqCMAddress}}/mgmt/tm/sys/license"
     method: POST
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
       command: "install"
-      registrationKey: "{{ bigIqHost01License }}"
+      registrationKey: "{{ bigIqCMLicense }}"
     body_format: json
 
-- name: Set {{bigIqHost01}} Personality
+- name: Set {{bigIqCM}} Personality
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/cm/system/provisioning"
+    url: "https://{{bigIqCMAddress}}/mgmt/cm/system/provisioning"
     method: POST
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
       systemPersonality: "big_iq"
     body_format: json
 
-- name: Execute easy-setup on {{bigIqHost01}}
+- name: Execute easy-setup on {{bigIqCM}}
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/shared/system/easy-setup"
+    url: "https://{{bigIqCMAddress}}/mgmt/shared/system/easy-setup"
     method: PATCH
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
-      hostname: "{{bigIqHost01}}.iq"
+      hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-- name: Set Master Key on {{bigIqHost01}}
+- name: Set Master Key on {{bigIqCM}}
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/cm/shared/secure-storage/masterkey"
+    url: "https://{{bigIqCMAddress}}/mgmt/cm/shared/secure-storage/masterkey"
     method: POST
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
       passphrase: "{{bigIqHostPassphrase}}"
     body_format: json
 
-- name: Set Admin Credentials {{bigIqHost01}}
+- name: Set Admin Credentials {{bigIqCM}}
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/shared/authz/users"
+    url: "https://{{bigIqCMAddress}}/mgmt/shared/authz/users"
     method: PUT
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
-      name: "{{ bigIqHost01Admin }}"
-      oldPassword: "{{ bigIqHost01Password }}"
-      password: "{{ bigIqHost01Password }}"
-      password2: "{{ bigIqHost01Password }}"
+      name: "{{ bigIqCMAdmin }}"
+      oldPassword: "{{ bigIqCMPassword }}"
+      password: "{{ bigIqCMPassword }}"
+      password2: "{{ bigIqCMPassword }}"
       encryptedPassword: null
     body_format: json
 
-#- name: Set Root Credentials {{bigIqHost01}}
+#- name: Set Root Credentials {{bigIqCM}}
 #  uri:
-#    url: "https://{{bigIqHost01Address}}/mgmt/shared/authn/root"
+#    url: "https://{{bigIqCMAddress}}/mgmt/shared/authn/root"
 #    method: POST
 #    validate_certs: no
 #    user: root
-#    password: "{{ bigIqHost01Password }}"
+#    password: "{{ bigIqCMPassword }}"
 #    body:
 #      oldPassword:
-#      password: "{{ bigIqHost01Password }}"
-#      password2: "{{ bigIqHost01Password }}"
+#      password: "{{ bigIqCMPassword }}"
+#      password2: "{{ bigIqCMPassword }}"
 #    body_format: json
 
-- name: Exit Wizard {{bigIqHost01}}
+- name: Exit Wizard {{bigIqCM}}
   uri:
-    url: "https://{{bigIqHost01Address}}/mgmt/shared/system/setup"
+    url: "https://{{bigIqCMAddress}}/mgmt/shared/system/setup"
     method: PATCH
     validate_certs: no
-    user: "{{ bigIqHost01Admin }}"
-    password: "{{ bigIqHost01Password }}"
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
     body:
       isSystemSetup: true
     body_format: json

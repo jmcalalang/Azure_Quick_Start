@@ -3,6 +3,6 @@
 # use parent_parameters.yml for secure variables (ansible-vault)
 
 #module parameters
-bigIqHost01_storage_account: "{{bigIqHost01}}stract"
+bigIqCM_storage_account: "{{bigIqCM}}stract"
 restrictedSrcAddress: "*"
 virtual_network_name: "{{resource_group_name}}-virtual-network"
