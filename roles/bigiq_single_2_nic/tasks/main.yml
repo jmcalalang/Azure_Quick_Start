@@ -113,7 +113,7 @@
       name: f5-bigiq-virtual-edition-byol
       product: f5-big-iq
       publisher: f5-networks
-    register: azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress
+#    register: azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress
 
 - name: Assign Fact for External Management IP of {{bigIqCM}}
   set_fact:
