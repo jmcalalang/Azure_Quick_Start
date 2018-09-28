@@ -26,11 +26,20 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqCM}}-mgmt-pip0"
         primary: true
-  register: output
 
-- name: Assign Fact for External Management IP
-  set_fact:
-    bigIqCM_external_ip: "{{ public_ip }}"
+- name: Output of {{bigIqCM}}_mgmt_nic
+  azure_rm_publicipaddress:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{bigIqCM}}-mgmt-pip0"
+#    domain_name: foobar
+
+#- name: Assign Fact for External Management IP
+#  set_fact:
+#    bigIqCM_external_ip: "{{ public_ip }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
