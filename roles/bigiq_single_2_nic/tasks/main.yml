@@ -144,7 +144,7 @@
     settings: '{"commandToExecute": "set-basic-auth on"}'
     auto_upgrade_minor_version: true
 
-  name: "Webhook Notification to Teams for Build of BIG-IQ {{bigIqCM}}"
+- name: Webhook Notification to Teams for Build of BIG-IQ {{bigIqCM}}
   delegate_to: localhost
   uri:
     body:
@@ -156,7 +156,7 @@
         -
           ? "@type"
           : OpenUri
-          name: " BIG-IQ "
+          name: "BIG-IQ"
           targets:
             -
               os: default
