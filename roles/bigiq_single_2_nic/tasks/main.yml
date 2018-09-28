@@ -26,6 +26,7 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqCM}}-mgmt-pip0"
         primary: true
+    register: output
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
