@@ -38,6 +38,9 @@
   register: "state"
 #    domain_name: foobar
 
+- debug:
+    msg: "{{ state }}"
+
 - name: Assign Fact for External Management IP
   set_fact:
     bigIqCM_mgmt_ip: "{{ state.ip_address }}"
