@@ -1,15 +1,4 @@
-# Create or update a Application Virtual Machine
-
-#- name: Create Server {{bigIqCM}} Storage Account in {{resource_group_name}}
-#  azure_rm_storageaccount:
-#    tenant: "{{ tenantId }}"
-#    client_id: "{{ clientId }}"
-#    secret: "{{ servicePrincipalSecret }}"
-#    subscription_id: "{{ subscriptionId }}"
-#    location: "{{location}}"
-#    resource_group: "{{resource_group_name}}"
-#    name: "{{bigIqCM_storage_account}}"
-#    account_type: Premium_LRS
+# Create an F5 BIG-IQ instance with 2 NIC's
 
 - name: Create Server {{bigIqCM}} NIC_1 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -36,17 +25,10 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}-mgmt-pip0"
   register: "output"
-#    domain_name: foobar
-
-- debug:
-    msg: state register contains "{{ output }}"
 
 - name: Assign Fact for External Management IP
   set_fact:
-    bigIqCM_mgmt_ip: "{{ output.state.ip_address }}"
-
-- debug:
-    msg: "{{bigIqCM}} has Management Address {{ bigIqCM_mgmt_ip }}"
+    bigIqCM_mgmt_pip: "{{ output.state.ip_address }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -116,9 +98,6 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}"
     vm_size: Standard_D4s_v3
-#    storage_account: "{{bigIqCM_storage_account}}"
-#    storage_container: "{{bigIqCM}}001"
-#    storage_blob: "{{bigIqCM}}001.vhd"
     admin_username: "{{bigIqCMAdmin}}"
     admin_password: "{{bigIqCMPassword}}"
     network_interface_names:
@@ -134,11 +113,10 @@
       name: f5-bigiq-virtual-edition-byol
       product: f5-big-iq
       publisher: f5-networks
-#    register: azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress
 
 - name: Wait for {{bigIqCM}} to be available
   uri:
-    url: "https://{{bigIqCMAddress}}/info/system"
+    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
     validate_certs: no
   register: status
   until: status is success and status.json.available|bool
@@ -177,7 +155,7 @@
           targets:
             -
               os: default
-              uri: "https://{{ bigIqCM_mgmt_ip }}"
+              uri: "https://{{ bigIqCM_mgmt_pip }}"
       text: "Click **BIG-IQ Button** to be taken to the BIG-IQ!"
       themeColor: 0072C6
       title: "New BIG-IQ Created in Resource Group {{resource_group_name}}"
