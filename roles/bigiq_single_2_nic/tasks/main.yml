@@ -26,15 +26,7 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqCM}}-mgmt-pip0"
         primary: true
-
-- name: Get facts for one Public IP
-  azure_rm_publicip_facts:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
-    resource_group: "{{resource_group_name}}"
-    name: "{{bigIqCM}}_mgmt_nic"
+  register: output
 
 - name: Assign Fact for External Management IP
   set_fact:
