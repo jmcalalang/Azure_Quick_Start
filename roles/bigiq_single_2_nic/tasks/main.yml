@@ -26,7 +26,11 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIqCM}}-mgmt-pip0"
         primary: true
-    register: output
+    register: public_ip
+
+- name: Assign Fact for External Management IP
+  set_fact:
+    bigIqCM_external_ip: "{{ public_ip }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -115,10 +119,6 @@
       product: f5-big-iq
       publisher: f5-networks
 #    register: azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress
-
-- name: Assign Fact for External Management IP
-  set_fact:
-    bigIqCM_external_ip: "{{ azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress }}"
 
 - name: Wait for {{bigIqCM}} to be available
   uri:
