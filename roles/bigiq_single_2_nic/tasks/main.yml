@@ -40,7 +40,10 @@
 
 - name: Assign Fact for External Management IP
   set_fact:
-    bigIqCM_external_ip: "{{ ip_address }}"
+    bigIqCM_mgmt_ip: "{{ ip_address }}"
+
+- debug:
+    msg: "{{bigIqCM}} has Management Address {{ bigIqCM_mgmt_ip }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -171,7 +174,7 @@
           targets:
             -
               os: default
-              uri: "https://{{ bigIqCM_external_ip }}"
+              uri: "https://{{ bigIqCM_mgmt_ip }}"
       text: "Click **BIG-IQ Button** to be taken to the BIG-IQ!"
       themeColor: 0072C6
       title: "New BIG-IQ Created in Resource Group {{resource_group_name}}"
