@@ -117,7 +117,7 @@
 
 - name: Assign Fact for External Management IP of {{bigIqCM}}
   set_fact:
-    " {{{{bigIqCM}}_external_ip }} ": azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress
+    " {{bigIqCM}}_external_ip ": {{ azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress }}
 
 - name: Wait for {{bigIqCM}} to be available
   uri:
