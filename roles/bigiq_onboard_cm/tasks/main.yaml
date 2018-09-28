@@ -7,8 +7,8 @@
     return_content: yes
     status_code: 200
     body_format: json
-  register: result
-  until: result.available == "true"
+  register: response
+  until: response.state.available == "true"
   retries: 10
   delay: 6
 

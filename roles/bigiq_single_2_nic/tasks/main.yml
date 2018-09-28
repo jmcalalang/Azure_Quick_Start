@@ -122,7 +122,7 @@
     status_code: 200
     body_format: json
   register: response
-  until: response.available == "true"
+  until: response.state.available == "true"
   retries: 10
   delay: 6
 
