@@ -121,8 +121,8 @@
     return_content: yes
     status_code: 200
     body_format: json
-  register: available
-  until: available == "true"
+  register: response
+  until: response.available == "true"
   retries: 10
   delay: 6
 
