@@ -35,12 +35,12 @@
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}-mgmt-pip0"
-  register: ip_address
+  register: state
 #    domain_name: foobar
 
 - name: Assign Fact for External Management IP
   set_fact:
-    bigIqCM_mgmt_ip: "{{ state.ip_address }}"
+    bigIqCM_mgmt_ip: "{{ ip_address }}"
 
 - debug:
     msg: "{{bigIqCM}} has Management Address {{ bigIqCM_mgmt_ip }}"
