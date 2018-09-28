@@ -37,9 +37,9 @@
     name: "{{bigIqCM}}-mgmt-pip0"
 #    domain_name: foobar
 
-#- name: Assign Fact for External Management IP
-#  set_fact:
-#    bigIqCM_external_ip: "{{ public_ip }}"
+- name: Assign Fact for External Management IP
+  set_fact:
+    bigIqCM_external_ip: "{{ state.ip_address }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
