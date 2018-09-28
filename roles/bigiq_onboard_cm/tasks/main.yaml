@@ -2,7 +2,7 @@
 
 - name: Wait for BIG-IQ to be available
   uri:
-    url: "https://{{bigIqCMAddress}}/info/system"
+    url: "https://{{bigIqCM_mgmt_pip}}/info/system"
     validate_certs: no
   register: status
   until: status is success and status.json.available|bool
@@ -11,14 +11,14 @@
 
 - name: Test Authentication
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/shared/echo"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/echo"
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
     password: "{{ bigIqCMPassword }}"
 
 - name: License {{bigIqCM}}
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/tm/sys/license"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/tm/sys/license"
     method: POST
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
@@ -30,7 +30,7 @@
 
 - name: Set {{bigIqCM}} Personality
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/cm/system/provisioning"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/system/provisioning"
     method: POST
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
@@ -41,7 +41,7 @@
 
 - name: Execute easy-setup on {{bigIqCM}}
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/shared/system/easy-setup"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
     method: PATCH
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
@@ -52,7 +52,7 @@
 
 - name: Set Master Key on {{bigIqCM}}
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/cm/shared/secure-storage/masterkey"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
     method: POST
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
@@ -63,7 +63,7 @@
 
 - name: Set Admin Credentials {{bigIqCM}}
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/shared/authz/users"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authz/users"
     method: PUT
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
@@ -78,7 +78,7 @@
 
 #- name: Set Root Credentials {{bigIqCM}}
 #  uri:
-#    url: "https://{{bigIqCMAddress}}/mgmt/shared/authn/root"
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
 #    method: POST
 #    validate_certs: no
 #    user: root
@@ -91,7 +91,7 @@
 
 - name: Exit Wizard {{bigIqCM}}
   uri:
-    url: "https://{{bigIqCMAddress}}/mgmt/shared/system/setup"
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/setup"
     method: PATCH
     validate_certs: no
     user: "{{ bigIqCMAdmin }}"
