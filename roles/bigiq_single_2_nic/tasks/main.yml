@@ -117,7 +117,7 @@
 
 - name: Assign Fact for External Management IP of {{bigIqCM}}
   set_fact:
-    " {{bigIqCM}}_external_ip ": "{{ azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress }}"
+    bigIqCM_external_ip: "{{ azure_vm.properties.networkInterfaces.properties.ipConfigurations.properties.publicIPAddress.ipAddress }}"
 
 - name: Wait for {{bigIqCM}} to be available
   uri:
@@ -160,7 +160,7 @@
           targets:
             -
               os: default
-              uri: "https://{{{{bigIqCM}}_external_ip }}"
+              uri: "https://{{ bigIqCM_external_ip }}"
       text: "Click **BIG-IQ Button** to be taken to the BIG-IQ!"
       themeColor: 0072C6
       title: "New BIG-IQ Created in Resource Group {{resource_group_name}}"
