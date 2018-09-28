@@ -119,9 +119,9 @@
     url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
     validate_certs: no
   register: status
-  until: status is success and status.json.available|bool
-  retries: 600
-  delay: 10
+  until: status is success and status.json.available|true
+  retries: 10
+  delay: 6
 
 - name: Execute VM Extension for Server {{bigIqCM}}
   azure_rm_virtualmachine_extension:
