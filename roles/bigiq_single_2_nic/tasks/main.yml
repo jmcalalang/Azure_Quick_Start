@@ -35,7 +35,7 @@
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}-mgmt-pip0"
-  register: state
+  register: output
 #    domain_name: foobar
 
 - name: Assign Fact for External Management IP
