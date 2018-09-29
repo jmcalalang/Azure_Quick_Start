@@ -114,9 +114,6 @@
       product: f5-big-iq
       publisher: f5-networks
 
-- pause: BIG-IQ is slow we need to wait
-    minutes: 10
-
 - name: Verify {{bigIqCM}} is available
   uri:
     url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
@@ -127,8 +124,8 @@
     validate_certs: no
   register: bigIqCM_status
   until: bigIqCM_status.json.available == true
-  retries: 10
-  delay: 6
+  retries: 60
+  delay: 10
 
 #- debug:
 #    msg: "{{bigIqCM_status}}"
