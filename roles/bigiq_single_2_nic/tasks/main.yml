@@ -127,17 +127,8 @@
   retries: 10
   delay: 6
 
-- debug:
-    msg: "{{bigIqCM_status}}"
-
-#- name: Wait for {{bigIqCM}} to be available
-#  uri:
-#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
-#    validate_certs: no
-#  register: status
-#  until: status is success and status.json.available|True
-#  retries: 10
-#  delay: 6
+#- debug:
+#    msg: "{{bigIqCM_status}}"
 
 - name: Execute VM Extension for Server {{bigIqCM}}
   azure_rm_virtualmachine_extension:
