@@ -85,7 +85,7 @@
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
     method: POST
     validate_certs: no
-    user: root
+    user: "{{ bigIqCMAdmin }}"
     password: "{{ bigIqCMPassword }}"
     body:
       oldPassword: ""
