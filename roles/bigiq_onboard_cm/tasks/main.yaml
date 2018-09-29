@@ -88,7 +88,7 @@
     user: "{{ bigIqCMAdmin }}"
     password: "{{ bigIqCMPassword }}"
     body:
-      oldPassword: 
+      oldPassword: "default"
       newPassword: "{{ bigIqCMPassword }}"
     body_format: json
 
