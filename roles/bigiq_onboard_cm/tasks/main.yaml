@@ -13,7 +13,7 @@
   retries: 10
   delay: 6
 
-- name: Test Authentication
+- name: Test {{bigIqCM}} authentication
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/echo"
     validate_certs: no
@@ -43,7 +43,7 @@
       systemPersonality: "big_iq"
     body_format: json
 
-- name: Execute easy-setup on {{bigIqCM}}
+- name: Execute {{bigIqCM}} easy-setup
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
     method: PATCH
@@ -54,7 +54,7 @@
       hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-- name: Set Master Key on {{bigIqCM}}
+- name: Set {{bigIqCM}} Master-Key
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
     method: POST
@@ -65,7 +65,7 @@
       passphrase: "{{bigIqHostPassphrase}}"
     body_format: json
 
-- name: Set Admin Credentials {{bigIqCM}}
+- name: Set {{bigIqCM}} Admin Credentials
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authz/users"
     method: PUT
@@ -80,7 +80,7 @@
       encryptedPassword: null
     body_format: json
 
-- name: Set Root Credentials {{bigIqCM}}
+- name: Set {{bigIqCM}} Root Credentials
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
     method: POST
@@ -88,11 +88,11 @@
     user: "{{ bigIqCMAdmin }}"
     password: "{{ bigIqCMPassword }}"
     body:
-      oldPassword: "default"
+      oldPassword: "{{ oldPassword_root }}"
       newPassword: "{{ bigIqCMPassword }}"
     body_format: json
 
-- name: Exit Wizard {{bigIqCM}}
+- name: Finalize {{bigIqCM}} Wizard
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/setup"
     method: PATCH

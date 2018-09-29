@@ -1,6 +1,6 @@
 # Create an F5 BIG-IQ instance with 2 NIC's
 
-- name: Create Server {{bigIqCM}} NIC_1 in {{resource_group_name}}
+- name: Create Server {{bigIqCM}} Managemnet NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -9,7 +9,7 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}_mgmt_nic"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "management"
+    subnet: "{{managemenet_subnet}}"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
@@ -30,7 +30,7 @@
   set_fact:
     bigIqCM_mgmt_pip: "{{ bigIqCM_mgmt_nic.state.ip_address }}"
 
-- name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
+- name: Create Server {{bigIqCM}} External NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -39,7 +39,7 @@
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}_ext_nic"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "external"
+    subnet: "{{external_subnet}}"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
@@ -133,7 +133,7 @@
 #- debug:
 #    msg: "{{bigIqCM_status}}"
 
-- name: Execute VM Extension for Server {{bigIqCM}}
+- name: Enable Basic Auth on {{bigIqCM}}
   azure_rm_virtualmachine_extension:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
