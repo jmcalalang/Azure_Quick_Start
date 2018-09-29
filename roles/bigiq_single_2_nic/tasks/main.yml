@@ -120,9 +120,9 @@
     method: GET
     return_content: yes
     status_code: 200
-    body_format: json
+#    body_format: json
   register: bigIq_status
-  until: bigIq_status.json.state.available == "true"
+  until: bigIq_status.json.available == "true"
   retries: 10
   delay: 6
 
