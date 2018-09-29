@@ -121,6 +121,7 @@
     return_content: yes
     status_code: 200
     body_format: json
+    validate_certs: no
   register: bigIqCM_status
 #  until: bigIqCM_status.available == "true"
   retries: 10
