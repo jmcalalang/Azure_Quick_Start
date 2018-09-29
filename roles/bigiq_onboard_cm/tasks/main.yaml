@@ -1,6 +1,6 @@
 # Onboard a BIG-IQ 2 NIC installation with CM Personality
 
-- name: Wait for {{bigIqCM}} to be available
+- name: Verify {{bigIqCM}} is available
   uri:
     url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
     method: GET
@@ -54,16 +54,16 @@
       hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-#- name: Set Master Key on {{bigIqCM}}
-#  uri:
-#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-#    method: POST
-#    validate_certs: no
-#    user: "{{ bigIqCMAdmin }}"
-#    password: "{{ bigIqCMPassword }}"
-#    body:
-#      passphrase: "{{bigIqHostPassphrase}}"
-#    body_format: json
+- name: Set Master Key on {{bigIqCM}}
+  uri:
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
 
 - name: Set Admin Credentials {{bigIqCM}}
   uri:
@@ -88,9 +88,8 @@
     user: "{{ bigIqCMAdmin }}"
     password: "{{ bigIqCMPassword }}"
     body:
-      oldPassword: ""
+      oldPassword: 
       newPassword: "{{ bigIqCMPassword }}"
-#      password2: "{{ bigIqCMPassword }}"
     body_format: json
 
 - name: Exit Wizard {{bigIqCM}}
