@@ -122,7 +122,7 @@
     status_code: 200
 #    body_format: json
   register: bigIq_status
-  until: bigIq_status.json.available == "true"
+  until: bigIq_status.state.available == "true"
   retries: 10
   delay: 6
 
