@@ -24,11 +24,11 @@
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{bigIqCM}}-mgmt-pip0"
-  register: "output"
+  register: "bigIqCM_mgmt_nic"
 
 - name: Assign Fact for External Management IP
   set_fact:
-    bigIqCM_mgmt_pip: "{{ output.state.ip_address }}"
+    bigIqCM_mgmt_pip: "{{ bigIqCM_mgmt_nic.state.ip_address }}"
 
 - name: Create Server {{bigIqCM}} NIC_2 in {{resource_group_name}}
   azure_rm_networkinterface:
@@ -120,11 +120,14 @@
     method: GET
     return_content: yes
     status_code: 200
-#    body_format: json
-  register: bigIq_status
-  until: bigIq_status.state.available == "true"
+    body_format: json
+  register: bigIqCM_status
+#  until: bigIqCM_status.available == "true"
   retries: 10
   delay: 6
+
+- debug:
+    msg: "{{bigIqCM_status}}"
 
 #- name: Wait for {{bigIqCM}} to be available
 #  uri:
