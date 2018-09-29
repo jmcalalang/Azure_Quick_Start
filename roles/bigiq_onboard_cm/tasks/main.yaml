@@ -54,16 +54,16 @@
       hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-- name: Set Master Key on {{bigIqCM}}
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-    method: POST
-    validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
-    body:
-      passphrase: "{{bigIqHostPassphrase}}"
-    body_format: json
+#- name: Set Master Key on {{bigIqCM}}
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+#    method: POST
+#    validate_certs: no
+#    user: "{{ bigIqCMAdmin }}"
+#    password: "{{ bigIqCMPassword }}"
+#    body:
+#      passphrase: "{{bigIqHostPassphrase}}"
+#    body_format: json
 
 - name: Set Admin Credentials {{bigIqCM}}
   uri:
@@ -89,8 +89,8 @@
     password: "{{ bigIqCMPassword }}"
     body:
       oldPassword: ""
-      password: "{{ bigIqCMPassword }}"
-      password2: "{{ bigIqCMPassword }}"
+      newPassword: "{{ bigIqCMPassword }}"
+#      password2: "{{ bigIqCMPassword }}"
     body_format: json
 
 - name: Exit Wizard {{bigIqCM}}
