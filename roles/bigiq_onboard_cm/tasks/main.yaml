@@ -54,16 +54,16 @@
       hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-- name: Set {{bigIqCM}} Master-Key
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-    method: POST
-    validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
-    body:
-      passphrase: "{{bigIqHostPassphrase}}"
-    body_format: json
+#- name: Set {{bigIqCM}} Master-Key
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+#    method: POST
+#    validate_certs: no
+#    user: "{{ bigIqCMAdmin }}"
+#    password: "{{ bigIqCMPassword }}"
+#    body:
+#      passphrase: "{{bigIqHostPassphrase}}"
+#    body_format: json
 
 - name: Set {{bigIqCM}} Admin Credentials
   uri:
@@ -80,17 +80,17 @@
       encryptedPassword: null
     body_format: json
 
-- name: Set {{bigIqCM}} Root Credentials
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
-    method: POST
-    validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
-    body:
-      oldPassword: "{{ oldPassword_root }}"
-      newPassword: "{{ bigIqCMPassword }}"
-    body_format: json
+#- name: Set {{bigIqCM}} Root Credentials
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
+#    method: POST
+#    validate_certs: no
+#    user: "{{ bigIqCMAdmin }}"
+#    password: "{{ bigIqCMPassword }}"
+#    body:
+#      oldPassword: "{{ oldPassword_root }}"
+#      newPassword: "{{ bigIqCMPassword }}"
+#    body_format: json
 
 - name: Finalize {{bigIqCM}} Wizard
   uri:
