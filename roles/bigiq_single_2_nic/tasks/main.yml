@@ -114,7 +114,7 @@
       product: f5-big-iq
       publisher: f5-networks
 
-- pause: Pausing for {{bigIqCM}} to catch up
+- pause:
     minutes: 15
 
 - name: Verify {{bigIqCM}} is available
