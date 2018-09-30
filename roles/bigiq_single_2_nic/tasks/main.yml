@@ -114,6 +114,9 @@
       product: f5-big-iq
       publisher: f5-networks
 
+- pause:
+    minutes: 10
+
 - name: Verify {{bigIqCM}} is available
   uri:
     url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
