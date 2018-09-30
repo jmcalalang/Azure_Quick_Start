@@ -119,7 +119,7 @@
 
 - name: Trigger {{bigIqCM}} token system
   uri:
-    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
+    url: "https://{{ bigIqCM_mgmt_pip }}/ui/login/"
     method: GET
 
 - name: Verify {{bigIqCM}} is available
