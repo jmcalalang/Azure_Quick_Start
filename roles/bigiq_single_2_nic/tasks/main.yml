@@ -115,7 +115,7 @@
       publisher: f5-networks
 
 - pause: Pausing for {{bigIqCM}} to catch up
-    minutes: 10
+    minutes: 15
 
 - name: Verify {{bigIqCM}} is available
   uri:
