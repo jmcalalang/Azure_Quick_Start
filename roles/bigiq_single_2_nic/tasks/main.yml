@@ -125,6 +125,8 @@
     status_code: 200
     body_format: json
     validate_certs: no
+  retries: 60
+  delay: 10
 
 - name: Verify {{bigIqCM}} is available
   uri:
