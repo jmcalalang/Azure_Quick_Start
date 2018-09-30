@@ -92,7 +92,7 @@
 #      newPassword: "{{ bigIqCMPassword }}"
 #    body_format: json
 
-- name: Finalize {{bigIqCM}} Wizard
+- name: Close {{bigIqCM}} Wizard
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/setup"
     method: PATCH
@@ -101,4 +101,15 @@
     password: "{{ bigIqCMPassword }}"
     body:
       isSystemSetup: true
+    body_format: json
+
+- name: Restart {{bigIqCM}} Services
+  uri:
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/failover-state"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
+    body:
+      restart: true
     body_format: json
