@@ -114,8 +114,13 @@
       product: f5-big-iq
       publisher: f5-networks
 
-- pause:
-    minutes: 15
+#- pause:
+#    minutes: 7
+
+- name: Trigger {{bigIqCM}} token system
+  uri:
+    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
+    method: GET
 
 - name: Verify {{bigIqCM}} is available
   uri:
