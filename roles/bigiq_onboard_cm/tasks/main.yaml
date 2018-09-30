@@ -54,16 +54,16 @@
       hostname: "{{bigIqCM}}.iq"
     body_format: json
 
-#- name: Set {{bigIqCM}} Master-Key
-#  uri:
-#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-#    method: POST
-#    validate_certs: no
-#    user: "{{ bigIqCMAdmin }}"
-#    password: "{{ bigIqCMPassword }}"
-#    body:
-#      passphrase: "{{bigIqHostPassphrase}}"
-#    body_format: json
+- name: Set {{bigIqCM}} Master-Key
+  uri:
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqCMAdmin }}"
+    password: "{{ bigIqCMPassword }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
 
 - name: Set {{bigIqCM}} Admin Credentials
   uri:

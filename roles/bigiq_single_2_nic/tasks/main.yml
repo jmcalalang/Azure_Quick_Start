@@ -114,8 +114,8 @@
       product: f5-big-iq
       publisher: f5-networks
 
-#- pause:
-#    minutes: 7
+- pause:
+    minutes: 10
 
 - name: Trigger {{bigIqCM}} token system
   uri:

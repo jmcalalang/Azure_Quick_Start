@@ -1,42 +1,115 @@
----
+# Onboard a BIG-IQ 2 NIC installation with CM Personality
 
-- name: Setup provider
-  set_fact:
-    provider:
-      server: "{{ bigiq_onboard_server }}"
-      server_port: "{{ bigiq_onboard_server_port }}"
-      user: "{{ bigiq_onboard_user }}"
-      password: "{{ bigiq_onboard_password }}"
-      validate_certs: "{{ bigiq_onboard_validate_certs }}"
-      transport: "{{ bigiq_onboard_transport }}"
-
-- name: Wait for BIG-IQ to be available
+- name: Verify {{bigIqDCD}} is available
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/info/system"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
-  register: status
-  until: status is success and status.json.available|bool
+    url: "https://{{ bigIqDCD_mgmt_pip }}/info/system"
+    method: GET
+    return_content: yes
+    status_code: 200
+    body_format: json
+    validate_certs: no
+  register: bigIqDCD_status
+  until: bigIqDCD_status.json.available == true
   retries: 10
   delay: 6
 
-- name: Test authentication
+- name: Test {{bigIqDCD}} authentication
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/echo"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
-    user: "{{ bigiq_onboard_user }}"
-    password: "{{ bigiq_onboard_password }}"
-  register: status
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/echo"
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
 
-- name: Check if system is setup
+- name: License {{bigIqDCD}}
   uri:
-    url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/system/setup"
-    timeout: "{{ bigiq_onboard_timeout }}"
-    validate_certs: "{{ bigiq_onboard_validate_certs }}"
-    user: "{{ bigiq_onboard_user }}"
-    password: "{{ bigiq_onboard_password }}"
-  register: setup
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/tm/sys/license"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      command: "install"
+      registrationKey: "{{ bigIqDCDLicense }}"
+    body_format: json
 
-- include_tasks: setup-main.yaml
-  when: setup.json.isSystemSetup is not defined
+- name: Set {{bigIqDCD}} Personality
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/cm/system/provisioning"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      systemPersonality: "logging_node"
+    body_format: json
+
+- name: Execute {{bigIqDCD}} easy-setup
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/system/easy-setup"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      hostname: "{{bigIqDCD}}.iq"
+    body_format: json
+
+- name: Set {{bigIqDCD}} Master-Key
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
+
+- name: Set {{bigIqDCD}} Admin Credentials
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/authz/users"
+    method: PUT
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      name: "{{ bigIqDCDAdmin }}"
+      oldPassword: "{{ bigIqDCDPassword }}"
+      password: "{{ bigIqDCDPassword }}"
+      password2: "{{ bigIqDCDPassword }}"
+      encryptedPassword: null
+    body_format: json
+
+#- name: Set {{bigIqDCD}} Root Credentials
+#  uri:
+#    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/authn/root"
+#    method: POST
+#    validate_certs: no
+#    user: "{{ bigIqDCDAdmin }}"
+#    password: "{{ bigIqDCDPassword }}"
+#    body:
+#      oldPassword: "{{ oldPassword_root }}"
+#      newPassword: "{{ bigIqDCDPassword }}"
+#    body_format: json
+
+- name: Close {{bigIqDCD}} Wizard
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/system/setup"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      isSystemSetup: true
+    body_format: json
+
+- name: Restart {{bigIqDCD}} Services
+  uri:
+    url: "https://{{bigIqDCD_mgmt_pip}}/mgmt/shared/failover-state"
+    method: PATCH
+    validate_certs: no
+    user: "{{ bigIqDCDAdmin }}"
+    password: "{{ bigIqDCDPassword }}"
+    body:
+      restart: true
+    body_format: json
