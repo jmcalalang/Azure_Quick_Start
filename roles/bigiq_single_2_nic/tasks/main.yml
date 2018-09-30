@@ -121,6 +121,7 @@
   uri:
     url: "https://{{ bigIqCM_mgmt_pip }}/ui/login/"
     method: GET
+    validate_certs: no
 
 - name: Verify {{bigIqCM}} is available
   uri:
