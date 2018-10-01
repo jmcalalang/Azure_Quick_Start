@@ -74,7 +74,7 @@
 - name: Set {{bigIqCM}} Discovery Address
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/identified-devices/config/discovery"
-    method: PATCH
+    method: PUT
     validate_certs: no
     headers:
       X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
