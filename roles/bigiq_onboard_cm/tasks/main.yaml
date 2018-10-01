@@ -69,20 +69,21 @@
       hostname: "{{bigIqCM}}.iq"
       managementIpAddress: "{{ bigIqCM_managementIpAddress }}/24"
       managementRouteAddress: "{{ bigIqCM_managementRouteAddress }}"
+      discoveryAddress: "{{ bigIqCM_discoveryAddress }}"
     body_format: json
 
-- name: Set {{bigIqCM}} Discovery Address
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
-    method: PATCH
-    validate_certs: no
-    headers:
-      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
-    body:
-      discoveryAddress: "{{ bigIqCM_discoveryAddress }}"
-      managementIpAddress: "{{ bigIqCM_managementIpAddress }}/24"
-      managementRouteAddress: "{{ bigIqCM_managementRouteAddress }}"
-    body_format: json
+#- name: Set {{bigIqCM}} Discovery Address
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
+#    method: PATCH
+#    validate_certs: no
+#    headers:
+#      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
+#    body:
+#      discoveryAddress: "{{ bigIqCM_discoveryAddress }}"
+#      managementIpAddress: "{{ bigIqCM_managementIpAddress }}/24"
+#      managementRouteAddress: "{{ bigIqCM_managementRouteAddress }}"
+#    body_format: json
 
 - name: Set {{bigIqCM}} masterKey
   uri:
