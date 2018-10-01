@@ -15,26 +15,6 @@
   set_fact:
     bigIqCM_auth_token: "{{ bigIqCM_auth_response.json.token.token }}"
 
-#- name: Verify {{bigIqCM}} is available
-#  uri:
-#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
-#    method: GET
-#    return_content: yes
-#    status_code: 200
-#    body_format: json
-#    validate_certs: no
-#  register: bigIqCM_status
-#  until: bigIqCM_status.json.available == true
-#  retries: 10
-#  delay: 6
-
-#- name: Test {{bigIqCM}} authentication
-#  uri:
-#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/echo"
-#    validate_certs: no
-#    headers:
-#      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
-
 - name: License {{bigIqCM}}
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/tm/sys/license"
@@ -82,16 +62,16 @@
       discoveryAddress: "{{ bigIqCM_discoveryAddress }}"
     body_format: json
 
-#- name: Set {{bigIqCM}} masterKey
-#  uri:
-#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-#    method: POST
-#    validate_certs: no
-#    headers:
-#      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
-#    body:
-#      passphrase: "{{bigIqHostPassphrase}}"
-#    body_format: json
+- name: Set {{bigIqCM}} masterKey
+  uri:
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
+    body:
+      passphrase: "{{bigIqHostPassphrase}}"
+    body_format: json
 
 - name: Set {{bigIqCM}} Admin Credentials
   uri:
