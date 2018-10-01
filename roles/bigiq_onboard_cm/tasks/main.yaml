@@ -101,6 +101,8 @@
     password: "{{ bigIqCMPassword }}"
     body:
       isSystemSetup: true
+      isRootPasswordChanged: true
+      isAdminPasswordChanged: true
     body_format: json
 
 - name: Restart {{bigIqCM}} Services
