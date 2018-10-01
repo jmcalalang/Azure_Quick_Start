@@ -1,32 +1,47 @@
 # Onboard a BIG-IQ 2 NIC installation with CM Personality
 
-- name: Verify {{bigIqCM}} is available
+- name: Get BIG-IQ Authentication Token from {{bigIqCM}}
+  delegate_to: localhost
   uri:
-    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
-    method: GET
-    return_content: yes
-    status_code: 200
+    body: '{"username":"{{bigIqCMAdmin}}","password":"{{bigIqCMPassword}}","loginProvidername":"tmos"}'
     body_format: json
+    method: POST
+    url: "https://{{ bigIqCM_mgmt_pip }}/mgmt/shared/authn/login"
+    status_code: 200
     validate_certs: no
-  register: bigIqCM_status
-  until: bigIqCM_status.json.available == true
-  retries: 10
-  delay: 6
+  register: bigIqCM_auth_response
 
-- name: Test Authentication
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/echo"
-    validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+- name: Assign Auth Token to Variable
+  set_fact:
+    bigIqCM_auth_token: "{{ bigIqCM_auth_response.json.token.token }}"
+
+#- name: Verify {{bigIqCM}} is available
+#  uri:
+#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
+#    method: GET
+#    return_content: yes
+#    status_code: 200
+#    body_format: json
+#    validate_certs: no
+#  register: bigIqCM_status
+#  until: bigIqCM_status.json.available == true
+#  retries: 10
+#  delay: 6
+
+#- name: Test {{bigIqCM}} authentication
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/echo"
+#    validate_certs: no
+#    headers:
+#      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
 
 - name: License {{bigIqCM}}
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/tm/sys/license"
     method: POST
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
       command: "install"
       registrationKey: "{{ bigIqCMLicense }}"
@@ -37,41 +52,54 @@
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/system/provisioning"
     method: POST
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
       systemPersonality: "big_iq"
     body_format: json
 
-- name: Execute easy-setup on {{bigIqCM}}
+- name: Execute {{bigIqCM}} easy-setup
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
     method: PATCH
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
       hostname: "{{bigIqCM}}.iq"
+      managementIpAddress: "{{ bigIqCM_managementIpAddress }}/24"
+      managementRouteAddress: "{{ bigIqCM_managementRouteAddress }}"
     body_format: json
 
-- name: Set Master Key on {{bigIqCM}}
+- name: Set {{bigIqCM}} Discovery Address
   uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
-    method: POST
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/identified-devices/config/discovery"
+    method: PUT
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
-      passphrase: "{{bigIqHostPassphrase}}"
+      discoveryAddress: "{{ bigIqCM_discoveryAddress }}"
     body_format: json
 
-- name: Set Admin Credentials {{bigIqCM}}
+#- name: Set {{bigIqCM}} masterKey
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/cm/shared/secure-storage/masterkey"
+#    method: POST
+#    validate_certs: no
+#    headers:
+#      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
+#    body:
+#      passphrase: "{{bigIqHostPassphrase}}"
+#    body_format: json
+
+- name: Set {{bigIqCM}} Admin Credentials
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authz/users"
     method: PUT
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
       name: "{{ bigIqCMAdmin }}"
       oldPassword: "{{ bigIqCMPassword }}"
@@ -80,25 +108,38 @@
       encryptedPassword: null
     body_format: json
 
-- name: Set Root Credentials {{bigIqCM}}
-  uri:
-    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
-    method: POST
-    validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
-    body:
-      oldPassword: "default"
-      newPassword: "{{ bigIqCMPassword }}"
-    body_format: json
+#- name: Set {{bigIqCM}} Root Credentials
+#  uri:
+#    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/authn/root"
+#    method: POST
+#    validate_certs: no
+#    user: "{{ bigIqCMAdmin }}"
+#    password: "{{ bigIqCMPassword }}"
+#    body:
+#      oldPassword: "{{ oldPassword_root }}"
+#      newPassword: "{{ bigIqCMPassword }}"
+#    body_format: json
 
-- name: Exit Wizard {{bigIqCM}}
+- name: Close {{bigIqCM}} Wizard
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/setup"
     method: PATCH
     validate_certs: no
-    user: "{{ bigIqCMAdmin }}"
-    password: "{{ bigIqCMPassword }}"
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
     body:
       isSystemSetup: true
+      isRootPasswordChanged: true
+      isAdminPasswordChanged: true
+    body_format: json
+
+- name: Restart {{bigIqCM}} Services
+  uri:
+    url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/failover-state"
+    method: PATCH
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
+    body:
+      restart: true
     body_format: json

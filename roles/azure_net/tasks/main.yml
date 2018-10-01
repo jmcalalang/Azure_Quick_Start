@@ -18,7 +18,7 @@
     location: "{{location}}"
     resource_group: "{{resource_group_name}}"
     name: "{{virtual_network_name}}"
-    address_prefixes: "10.128.0.0/16"
+    address_prefixes: "{{virtual_network_address_prefix}}"
 
 - name: Create Subnet Management
   azure_rm_subnet:
@@ -27,8 +27,8 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: management
-    address_prefix_cidr: "10.128.1.0/24"
+    name: "{{managemenet_subnet}}"
+    address_prefix_cidr: "{{management_address_prefix_cidr}}"
     virtual_network_name: "{{virtual_network_name}}"
 
 - name: Create Subnet External
@@ -38,8 +38,8 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: external
-    address_prefix_cidr: "10.128.10.0/24"
+    name: "{{external_subnet}}"
+    address_prefix_cidr: "{{external_address_prefix_cidr}}"
     virtual_network_name: "{{virtual_network_name}}"
 
 - name: Create Subnet Internal
@@ -49,8 +49,8 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: internal
-    address_prefix_cidr: "10.128.20.0/24"
+    name: "{{internal_subnet}}"
+    address_prefix_cidr: "{{internal_address_prefix_cidr}}"
     virtual_network_name: "{{virtual_network_name}}"
 
 - name: Webhook Notification to Teams for Build of Resource Group {{resource_group_name}}
