@@ -134,6 +134,7 @@
     status_code: 200
     body_format: json
     validate_certs: no
+    follow_redirects: all
   retries: 60
   delay: 10
 
@@ -145,6 +146,7 @@
     status_code: 200
     body_format: json
     validate_certs: no
+    follow_redirects: all
   register: bigIqCM_status
   until: bigIqCM_status.json.available == true
   retries: 60
