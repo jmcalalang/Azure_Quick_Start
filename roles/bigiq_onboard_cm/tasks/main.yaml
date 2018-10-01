@@ -74,7 +74,7 @@
 - name: Set {{bigIqCM}} Discovery Address
   uri:
     url: "https://{{bigIqCM_mgmt_pip}}/mgmt/shared/system/easy-setup"
-    method: PUT
+    method: PATCH
     validate_certs: no
     headers:
       X-F5-Auth-Token: "{{ bigIqCM_auth_token }}"
