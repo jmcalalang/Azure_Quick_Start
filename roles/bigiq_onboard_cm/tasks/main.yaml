@@ -9,7 +9,7 @@
     url: "https://{{ bigIqCM_mgmt_pip }}/mgmt/shared/authn/login"
     status_code: 200
     validate_certs: no
-  register: bigip_auth_response
+  register: bigIqCM_auth_response
 
 - name: Assign Auth Token to Variable
   set_fact:
