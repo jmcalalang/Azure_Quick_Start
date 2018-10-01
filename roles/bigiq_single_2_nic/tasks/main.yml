@@ -115,11 +115,20 @@
       publisher: f5-networks
 
 - pause:
-    minutes: 10
+    minutes: 15
+
+#- name: Wait for {{bigIqCM}}
+#  uri:
+#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
+#    status_code: 200
+#  register: result
+#  until: result.status == 200
+#  retries: 90
+#  delay: 10
 
 - name: Trigger {{bigIqCM}} token system
   uri:
-    url: "https://{{ bigIqCM_mgmt_pip }}/ui/login/"
+    url: "https://{{ bigIqCM_mgmt_pip }}/ui/login"
     method: GET
     return_content: yes
     status_code: 200
