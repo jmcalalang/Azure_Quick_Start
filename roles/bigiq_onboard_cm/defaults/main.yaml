@@ -1,1 +1,4 @@
 oldPassword_root: "default"
+bigIqCM_discoveryAddress: "10.128.1.4"
+bigIqCM_managementIpAddress: "10.128.1.4"
+bigIqCM_managementRouteAddress: "10.128.1.1"
