@@ -1,6 +1,6 @@
 # Create an F5 BIG-IQ instance with 2 NIC's
 
-- name: Create Server {{bigIq01}} Managemnet NIC in {{resource_group_name}}
+- name: Create BIG-IQ {{bigIq01}} Managemnet NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -31,9 +31,9 @@
     bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic_external.state.ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External Address
+    msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
 
-- name: Create Server {{bigIq01}} External NIC in {{resource_group_name}}
+- name: Create BIG-IQ {{bigIq01}} External NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -54,7 +54,7 @@
     bigIq01_ext_pri_ip: "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private Address
+    msg: Registering "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private IP
 
 - name: Edit Security Group {{bigIq01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
@@ -99,7 +99,7 @@
             priority: 101
             direction: Inbound
 
-- name: Create Server {{bigIq01}} Virtual Machine
+- name: Create BIG-IQ {{bigIq01}} Virtual Machine
   azure_rm_virtualmachine:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
