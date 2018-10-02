@@ -33,28 +33,28 @@
 - debug:
     msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
 
-- name: Create BIG-IQ {{bigIq01}} External NIC in {{resource_group_name}}
+- name: Create BIG-IQ {{bigIq01}} Internal NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIq01}}_ext_nic"
+    name: "{{bigIq01}}_int_nic"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "{{external_subnet}}"
+    subnet: "{{internal_subnet}}"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIq01}}-ext-pip0"
-  register: "bigIq01_ext_nic_private"
+        public_ip_address_name: "{{bigIq01}}-int-pip0"
+  register: "bigIq01_int_nic_private"
 
-- name: Assign Fact for External NIC Private IP
+- name: Assign Fact for Internal NIC Private IP
   set_fact:
-    bigIq01_ext_pri_ip: "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}"
+    bigIq01_int_pri_ip: "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private IP
+    msg: Registering "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private IP
 
 - name: Edit Security Group {{bigIq01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
@@ -113,7 +113,7 @@
     admin_password: "{{bigIq01Password}}"
     network_interface_names:
       - "{{bigIq01}}_mgmt_nic"
-      - "{{bigIq01}}_ext_nic"
+      - "{{bigIq01}}_int_nic"
     managed_disk_type: Premium_LRS
     image:
       offer: f5-big-iq

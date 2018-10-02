@@ -82,7 +82,7 @@
 #      name: "{{ bigIq01_discoveryVlan }}_NIC"
 #      vlan: "{{ bigIq01_discoveryVlan }}"
 #      floating: "disabled"
-#      address: "{{ bigIq01_ext_pri_ip }}"
+#      address: "{{ bigIq01_int_pri_ip }}"
 #      allowedService:
 #        - default
 #    body_format: json
