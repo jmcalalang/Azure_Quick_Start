@@ -15,24 +15,23 @@
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIq01}}-mgmt-pip0"
         primary: true
-  register: "bigIq01_mgmt_nic"
 
-#- name: Output of {{bigIq01}}_mgmt_nic
-#  azure_rm_publicipaddress:
-#    tenant: "{{ tenantId }}"
-#    client_id: "{{ clientId }}"
-#    secret: "{{ servicePrincipalSecret }}"
-#    subscription_id: "{{ subscriptionId }}"
-#    resource_group: "{{resource_group_name}}"
-#    name: "{{bigIq01}}-mgmt-pip0"
-#  register: "bigIq01_mgmt_nic"
+- name: Output of {{bigIq01}}_mgmt_nic
+  azure_rm_publicipaddress:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{bigIq01}}-mgmt-pip0"
+  register: "bigIq01_mgmt_nic_external"
 
 - name: Assign Fact for External Management IP
   set_fact:
-    bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic.state.ip_address }}"
+    bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic_external.state.ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_mgmt_nic.state.ip_address }}" as Management NIC External Address
+    msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External Address
 
 - name: Create Server {{bigIq01}} External NIC in {{resource_group_name}}
   azure_rm_networkinterface:
