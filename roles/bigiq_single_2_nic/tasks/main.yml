@@ -16,6 +16,9 @@
         public_ip_address_name: "{{bigIq01}}-mgmt-pip0"
         primary: true
 
+- pause:
+    seconds: 15
+
 - name: Output of {{bigIq01}}_mgmt_nic
   azure_rm_publicipaddress:
     tenant: "{{ tenantId }}"
