@@ -60,7 +60,7 @@
 
 - name: Assign Fact for External Internal IP
   set_fact:
-    bigIq01_ext_pip: "{{ bigIq01_ext_nic.state.ip_address }}"
+    bigIq01_ext_pip: "{{ bigIq01_ext_nic.state.ip_configuration.private_ip_address }}"
 
 - debug:
     msg: Registering "{{ bigIq01_ext_nic.state.ip_configuration.private_ip_address }}" as External Address
