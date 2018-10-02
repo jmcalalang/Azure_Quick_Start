@@ -49,12 +49,12 @@
       hostname: "{{bigIq01}}.iq"
 #      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
-      internalSelfIpAddresses: "{{ bigIq01_discoveryAddress }}"
+      internalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}"]
       selfIpAddresses:
         - address: "{{ bigIq01_discoveryAddress }}"
         - vlan: "{{ bigIq01_discoveryVlan }}"
         - iface: 1.1
-      ntpServerAddresses: "0.pool.ntp.org"
+      ntpServerAddresses: ["0.pool.ntp.org"]
     body_format: json
 
 #- name: Create {{bigIq01}} External Vlan
