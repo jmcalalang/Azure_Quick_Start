@@ -26,7 +26,7 @@
     name: "{{bigIq01}}-mgmt-pip0"
   register: "bigIq01_mgmt_nic_external"
 
-- name: Assign Fact for External Management IP
+- name: Assign Fact for Management NIC External IP
   set_fact:
     bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic_external.state.ip_address }}"
 
@@ -49,9 +49,9 @@
         public_ip_address_name: "{{bigIq01}}-ext-pip0"
   register: "bigIq01_ext_nic_private"
 
-- name: Assign Fact for External Internal IP
+- name: Assign Fact for External NIC Private IP
   set_fact:
-    bigIq01_ext_pri_ip: "{{ bbigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}"
+    bigIq01_ext_pri_ip: "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}"
 
 - debug:
     msg: Registering "{{ bigIq01_ext_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private Address
