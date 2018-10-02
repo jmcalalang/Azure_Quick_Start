@@ -81,7 +81,7 @@
             priority: 101
             direction: Inbound
 
-- name: Edit Security Group {{bigIq01}}_ext_nic in {{resource_group_name}} (Deny All Access)
+- name: Edit Security Group {{bigIq01}}_int_nic in {{resource_group_name}} (Deny All Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
