@@ -1,58 +1,72 @@
 # Create an F5 BIG-IQ instance with 2 NIC's
 
-- name: Create Server {{bigIqCM}} Managemnet NIC in {{resource_group_name}}
+- name: Create BIG-IQ {{bigIq01}} Managemnet NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqCM}}_mgmt_nic"
+    name: "{{bigIq01}}_mgmt_nic"
     virtual_network: "{{virtual_network_name}}"
     subnet: "{{managemenet_subnet}}"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIqCM}}-mgmt-pip0"
+        public_ip_address_name: "{{bigIq01}}-mgmt-pip0"
         primary: true
 
-- name: Output of {{bigIqCM}}_mgmt_nic
+- pause:
+    seconds: 15
+
+- name: Output of {{bigIq01}}_mgmt_nic
   azure_rm_publicipaddress:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqCM}}-mgmt-pip0"
-  register: "bigIqCM_mgmt_nic"
+    name: "{{bigIq01}}-mgmt-pip0"
+  register: "bigIq01_mgmt_nic_external"
 
-- name: Assign Fact for External Management IP
+- name: Assign Fact for Management NIC External IP
   set_fact:
-    bigIqCM_mgmt_pip: "{{ bigIqCM_mgmt_nic.state.ip_address }}"
+    bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic_external.state.ip_address }}"
 
-- name: Create Server {{bigIqCM}} External NIC in {{resource_group_name}}
+- debug:
+    msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
+
+- name: Create BIG-IQ {{bigIq01}} Internal NIC in {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqCM}}_ext_nic"
+    name: "{{bigIq01}}_int_nic"
     virtual_network: "{{virtual_network_name}}"
-    subnet: "{{external_subnet}}"
+    subnet: "{{internal_subnet}}"
     ip_configurations:
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
-        public_ip_address_name: "{{bigIqCM}}-ext-pip0"
+        public_ip_address_name: "{{bigIq01}}-int-pip0"
+  register: "bigIq01_int_nic_private"
 
-- name: Edit Security Group {{bigIqCM}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
+- name: Assign Fact for Internal NIC Private IP
+  set_fact:
+    bigIq01_int_pri_ip: "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}"
+
+- debug:
+    msg: Registering "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as Internal NIC Private IP
+
+- name: Edit Security Group {{bigIq01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
       secret: "{{ servicePrincipalSecret }}"
       subscription_id: "{{ subscriptionId }}"
       resource_group: "{{resource_group_name}}"
-      name: "{{bigIqCM}}_mgmt_nic"
+      name: "{{bigIq01}}_mgmt_nic"
       purge_rules: yes
       rules:
           - name: 'AllowHTTPS'
@@ -70,14 +84,14 @@
             priority: 101
             direction: Inbound
 
-- name: Edit Security Group {{bigIqCM}}_ext_nic in {{resource_group_name}} (Deny All Access)
+- name: Edit Security Group {{bigIq01}}_int_nic in {{resource_group_name}} (Deny All Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
       secret: "{{ servicePrincipalSecret }}"
       subscription_id: "{{ subscriptionId }}"
       resource_group: "{{resource_group_name}}"
-      name: "{{bigIqCM}}_ext_nic"
+      name: "{{bigIq01}}_ext_nic"
       purge_rules: yes
       rules:
           - name: 'AllowSSH'
@@ -88,7 +102,7 @@
             priority: 101
             direction: Inbound
 
-- name: Create Server {{bigIqCM}} Virtual Machine
+- name: Create BIG-IQ {{bigIq01}} Virtual Machine
   azure_rm_virtualmachine:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -96,13 +110,13 @@
     subscription_id: "{{ subscriptionId }}"
     location: "{{location}}"
     resource_group: "{{resource_group_name}}"
-    name: "{{bigIqCM}}"
+    name: "{{bigIq01}}"
     vm_size: Standard_D4s_v3
-    admin_username: "{{bigIqCMAdmin}}"
-    admin_password: "{{bigIqCMPassword}}"
+    admin_username: "{{bigIq01Admin}}"
+    admin_password: "{{bigIq01Password}}"
     network_interface_names:
-      - "{{bigIqCM}}_mgmt_nic"
-      - "{{bigIqCM}}_ext_nic"
+      - "{{bigIq01}}_mgmt_nic"
+      - "{{bigIq01}}_int_nic"
     managed_disk_type: Premium_LRS
     image:
       offer: f5-big-iq
@@ -117,61 +131,7 @@
 - pause:
     minutes: 10
 
-#- name: Wait for {{bigIqCM}}
-#  uri:
-#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
-#    status_code: 200
-#  register: result
-#  until: result.status == 200
-#  retries: 90
-#  delay: 10
-
-#- name: Trigger {{bigIqCM}} token system
-#  uri:
-#    url: "https://{{ bigIqCM_mgmt_pip }}/ui/login"
-#    method: GET
-#    return_content: yes
-#    status_code: 200
-#    body_format: json
-#    validate_certs: no
-#    follow_redirects: all
-#  retries: 60
-#  delay: 10
-
-#- name: Verify {{bigIqCM}} is available
-#  uri:
-#    url: "https://{{ bigIqCM_mgmt_pip }}/info/system"
-#    method: GET
-#    return_content: yes
-#    status_code: 200
-#    body_format: json
-#    validate_certs: no
-#    follow_redirects: all
-#  register: bigIqCM_status
-#  until: bigIqCM_status.json.available == true
-#  retries: 60
-#  delay: 10
-
-#- debug:
-#    msg: "{{bigIqCM_status}}"
-
-#- name: Enable Basic Auth on {{bigIqCM}}
-#  azure_rm_virtualmachine_extension:
-#    tenant: "{{ tenantId }}"
-#    client_id: "{{ clientId }}"
-#    secret: "{{ servicePrincipalSecret }}"
-#    subscription_id: "{{ subscriptionId }}"
-#    location: "{{location}}"
-#    name: Enable_Basic_Auth
-#    resource_group: "{{resource_group_name}}"
-#    virtual_machine_name: "{{bigIqCM}}"
-#    publisher: Microsoft.Azure.Extensions
-#    virtual_machine_extension_type: CustomScript
-#    type_handler_version: 2.0
-#    settings: '{"commandToExecute": "set-basic-auth on"}'
-#    auto_upgrade_minor_version: true
-
-- name: Webhook Notification to Teams for Build of BIG-IQ {{bigIqCM}}
+- name: Webhook Notification to Teams for Build of BIG-IQ {{bigIq01}}
   delegate_to: localhost
   uri:
     body:
@@ -187,8 +147,8 @@
           targets:
             -
               os: default
-              uri: "https://{{ bigIqCM_mgmt_pip }}"
-      text: "Click **BIG-IQ Button** to be taken to the BIG-IQ!"
+              uri: "https://{{ bigIq01_mgmt_pip }}"
+      text: "Click **BIG-IQ Button** to be taken to {{bigIq01}}!"
       themeColor: 0072C6
       title: "New BIG-IQ Created in Resource Group {{resource_group_name}}"
     body_format: json

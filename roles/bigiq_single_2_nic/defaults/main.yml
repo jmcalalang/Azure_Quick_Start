@@ -6,4 +6,4 @@
 restrictedSrcAddress: "*"
 virtual_network_name: "{{resource_group_name}}-virtual-network"
 managemenet_subnet: "management"
-external_subnet: "external"
+internal_subnet: "internal"

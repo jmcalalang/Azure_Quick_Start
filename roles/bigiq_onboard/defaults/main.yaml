@@ -1,0 +1,7 @@
+bigIq01_mgmt_pip: ""
+bigIq01_int_pri_ip: ""
+bigIq01_discoveryAddress: "{{ bigIq01_int_pri_ip }}"
+#bigIq01_managementIpAddress: "{{ bigIq01_mgmt_pip }}"
+#bigIq01_managementRouteAddress: "10.128.1.1"
+# BIG-IQ Personalitys are CM = "big_iq" and DCD = "logging_node"
+bigIq01_systemPersonality: "big_iq"
