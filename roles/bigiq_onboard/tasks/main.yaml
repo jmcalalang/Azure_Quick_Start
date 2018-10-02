@@ -88,18 +88,6 @@
       encryptedPassword: null
     body_format: json
 
-#- name: Set {{bigIq01}} Root Credentials
-#  uri:
-#    url: "https://{{bigIq01_mgmt_pip}}/mgmt/shared/authn/root"
-#    method: POST
-#    validate_certs: no
-#    user: "{{ bigIq01Admin }}"
-#    password: "{{ bigIq01Password }}"
-#    body:
-#      oldPassword: "{{ oldPassword_root }}"
-#      newPassword: "{{ bigIq01Password }}"
-#    body_format: json
-
 - name: Close {{bigIq01}} Wizard
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/shared/system/setup"
