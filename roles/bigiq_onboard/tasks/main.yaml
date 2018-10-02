@@ -50,7 +50,7 @@
 #      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
       selfIpAddresses:
-        - address: "{{ bigIq01_discoveryAddress }}/24"
+        - address: "{{ bigIq01_discoveryAddress }}"/24
         - vlan: "{{ bigIq01_discoveryVlan }}"
         - iface: 1.1
     body_format: json
