@@ -49,10 +49,10 @@
       hostname: "{{bigIq01}}.iq"
 #      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
-      selfIpAddresses:
+#      selfIpAddresses:
 #        - address: "{{ bigIq01_discoveryAddress }}"
-        - vlan: "{{ bigIq01_discoveryVlan }}"
-        - iface: 1.1
+#        - vlan: "{{ bigIq01_discoveryVlan }}"
+#        - iface: 1.1
     body_format: json
 
 - name: Set {{bigIq01}} Discovery Address
