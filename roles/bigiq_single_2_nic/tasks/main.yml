@@ -47,16 +47,17 @@
       - name: ipconfig1
         private_ip_allocation_method: Dynamic
         public_ip_address_name: "{{bigIq01}}-ext-pip0"
-
-- name: Output of {{bigIq01}}_ext_nic
-  azure_rm_publicipaddress:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
-    resource_group: "{{resource_group_name}}"
-    name: "{{bigIq01}}-ext-pip0"
   register: "bigIq01_ext_nic"
+
+#- name: Output of {{bigIq01}}_ext_nic
+#  azure_rm_publicipaddress:
+#    tenant: "{{ tenantId }}"
+#    client_id: "{{ clientId }}"
+#    secret: "{{ servicePrincipalSecret }}"
+#    subscription_id: "{{ subscriptionId }}"
+#    resource_group: "{{resource_group_name}}"
+#    name: "{{bigIq01}}-ext-pip0"
+#  register: "bigIq01_ext_nic"
 
 - name: Assign Fact for External Internal IP
   set_fact:
