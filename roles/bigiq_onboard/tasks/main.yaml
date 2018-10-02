@@ -49,7 +49,7 @@
       hostname: "{{bigIq01}}.iq"
 #      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
-      internalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}"]
+      externalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}"]
 #      selfIpAddresses:
 #        - address: "{{ bigIq01_discoveryAddress }}"
 #        - vlan: "{{ bigIq01_discoveryVlan }}"
