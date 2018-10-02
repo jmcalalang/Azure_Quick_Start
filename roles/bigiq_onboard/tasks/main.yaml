@@ -55,6 +55,36 @@
 #        - iface: 1.1
     body_format: json
 
+- name: Create {{bigIq01}} External Vlan
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/tm/net/vlan/"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+      name: "{{ bigIq01_discoveryVlan }}"
+      interfaces:
+        - name: 1.1
+        - tagged: false
+    body_format: json
+
+- name: Create {{bigIq01}} External Self IP
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/tm/net/self/"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+      name: "{{ bigIq01_discoveryVlan }}_NIC"
+      vlan: "{{ bigIq01_discoveryVlan }}"
+      floating: "disabled"
+      address: "{{ bigIq01_ext_pri_ip }}"
+      allowedService:
+        - default
+    body_format: json
+
 - name: Set {{bigIq01}} Discovery Address
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/shared/identified-devices/config/discovery"
