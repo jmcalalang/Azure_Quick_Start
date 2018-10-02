@@ -54,7 +54,7 @@
     bigIq01_int_pri_ip: "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as External NIC Private IP
+    msg: Registering "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as Internal NIC Private IP
 
 - name: Edit Security Group {{bigIq01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
   azure_rm_securitygroup:
