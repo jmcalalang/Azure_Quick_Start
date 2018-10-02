@@ -47,7 +47,7 @@
       X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
     body:
       hostname: "{{bigIq01}}.iq"
-      internalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}"]
+      internalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}/24"]
       ntpServerAddresses: ["0.pool.ntp.org"]
     body_format: json
 
