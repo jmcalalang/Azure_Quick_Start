@@ -47,8 +47,12 @@
       X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
     body:
       hostname: "{{bigIq01}}.iq"
-      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
-      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
+#      managementIpAddress: "{{ bigIq01_managementIpAddress }}/24"
+#      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
+      selfIpAddresses:
+        address: "{{ bigIq01_discoveryAddress }}"
+        vlan: "{{ bigIq01_discoveryVlan }}"
+        iface: 1.1
     body_format: json
 
 - name: Set {{bigIq01}} Discovery Address
