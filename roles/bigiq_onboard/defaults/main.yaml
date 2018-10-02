@@ -1,4 +1,5 @@
 bigIq01_mgmt_pip: ""
+# bigIq01_ext_pri_ip needs cidr x.x.x.x/24
 bigIq01_ext_pri_ip: ""
 bigIq01_discoveryAddress: "{{ bigIq01_ext_pri_ip }}"
 bigIq01_discoveryVlan: "external"
