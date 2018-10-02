@@ -51,7 +51,7 @@
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
       internalSelfIpAddresses: ["{{ bigIq01_discoveryAddress }}"]
       selfIpAddresses:
-        - address: "{{ bigIq01_discoveryAddress }}"
+#        - address: "{{ bigIq01_discoveryAddress }}"
         - vlan: "{{ bigIq01_discoveryVlan }}"
         - iface: 1.1
       ntpServerAddresses: ["0.pool.ntp.org"]
