@@ -148,7 +148,7 @@
             -
               os: default
               uri: "https://{{ bigIq01_mgmt_pip }}"
-      text: "Click **BIG-IQ Button** to be taken to the BIG-IQ!"
+      text: "Click **BIG-IQ Button** to be taken to {{bigIq01}}!"
       themeColor: 0072C6
       title: "New BIG-IQ Created in Resource Group {{resource_group_name}}"
     body_format: json
