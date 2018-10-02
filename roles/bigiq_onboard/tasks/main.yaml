@@ -51,7 +51,7 @@
 #      managementRouteAddress: "{{ bigIq01_managementRouteAddress }}"
       selfIpAddresses:
         - address: "{{ bigIq01_discoveryAddress }}"
-        - vlan: "{{ bigIq01_discoveryVlan }}"
+#        - vlan: "{{ bigIq01_discoveryVlan }}"
         - iface: 1.1
     body_format: json
 
