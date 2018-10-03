@@ -9,7 +9,7 @@
     name: "{{resource_group_name}}"
     location: "{{location}}"
 
-- name: Create {{virtual_network_name}} Virtual Network
+- name: Create {{virtual_network_name}}
   azure_rm_virtualnetwork:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"

@@ -1,6 +1,6 @@
 # Create or update a Application Virtual Machine
 
-- name: Create {{application_server_name}} Storage Account in {{resource_group_name}}
+- name: Create {{application_server_name}} Storage Account in Resource Group {{resource_group_name}}
   azure_rm_storageaccount:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -107,7 +107,7 @@
 - name: Webhook Notification to Teams for Build of Server {{application_server_name}}
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"Application Server {{application_server_name}} was created in Resource Group {{resource_group_name}}!\"}"
+    body: "{\"text\": \"Application Server {{application_server_name}} was created in Resource Group {{resource_group_name}} with Private Address {{application_server_int_pri_ip}}!\"}"
     body_format: json
     method: POST
     status_code: 200
