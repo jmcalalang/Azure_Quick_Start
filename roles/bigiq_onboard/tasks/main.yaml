@@ -1,6 +1,6 @@
 # Onboard a BIG-IQ 2 NIC installation with CM Personality
 
-- name: Get BIG-IQ Authentication Token from {{bigIq01}}
+- name: Get {{bigIq01}} Authentication Token
   delegate_to: localhost
   uri:
     body: '{"username":"{{bigIq01Admin}}","password":"{{bigIq01Password}}","loginProvidername":"tmos"}'
@@ -38,7 +38,7 @@
       systemPersonality: "{{ bigIq01_systemPersonality }}"
     body_format: json
 
-- name: Execute {{bigIq01}} easy-setup
+- name: Execute {{bigIq01}} "easy-setup"
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/shared/system/easy-setup"
     method: PATCH

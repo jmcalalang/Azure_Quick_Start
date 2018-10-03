@@ -1,6 +1,6 @@
 # Create an F5 BIG-IQ instance with 2 NIC's
 
-- name: Create BIG-IQ {{bigIq01}} Managemnet NIC in {{resource_group_name}}
+- name: Create {{bigIq01}} Managemnet NIC in Resource Group {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -19,7 +19,7 @@
 - pause:
     seconds: 15
 
-- name: Output of {{bigIq01}}_mgmt_nic
+- name: Gather {{bigIq01}}_mgmt_nic Facts
   azure_rm_publicipaddress:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -29,14 +29,14 @@
     name: "{{bigIq01}}-mgmt-pip0"
   register: "bigIq01_mgmt_nic_external"
 
-- name: Assign Fact for Management NIC External IP
+- name: Assign {{bigIq01}}_mgmt_nic Fact
   set_fact:
     bigIq01_mgmt_pip: "{{ bigIq01_mgmt_nic_external.state.ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
+    msg: Registered "{{ bigIq01_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
 
-- name: Create BIG-IQ {{bigIq01}} Internal NIC in {{resource_group_name}}
+- name: Create {{bigIq01}} Internal NIC in Resource Group {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -52,14 +52,14 @@
         public_ip_address_name: "{{bigIq01}}-int-pip0"
   register: "bigIq01_int_nic_private"
 
-- name: Assign Fact for Internal NIC Private IP
+- name: Assign {{bigIq01}}_int_nic Fact
   set_fact:
     bigIq01_int_pri_ip: "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}"
 
 - debug:
-    msg: Registering "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as Internal NIC Private IP
+    msg: Registered "{{ bigIq01_int_nic_private.state.ip_configuration.private_ip_address }}" as Internal NIC Private IP
 
-- name: Edit Security Group {{bigIq01}}_mgmt_nic in {{resource_group_name}} (Allow Management Access)
+- name: Edit {{bigIq01}}_mgmt_nic Security Group in {{resource_group_name}} (Allow HTTPS Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
@@ -84,7 +84,7 @@
             priority: 101
             direction: Inbound
 
-- name: Edit Security Group {{bigIq01}}_int_nic in {{resource_group_name}} (Deny All Access)
+- name: Edit {{bigIq01}}_int_nic Security Group in {{resource_group_name}} (Deny All External Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
@@ -102,7 +102,7 @@
             priority: 101
             direction: Inbound
 
-- name: Create BIG-IQ {{bigIq01}} Virtual Machine
+- name: Create {{bigIq01}} Virtual Machine
   azure_rm_virtualmachine:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -131,7 +131,7 @@
 - pause:
     minutes: 10
 
-- name: Webhook Notification to Teams for Build of BIG-IQ {{bigIq01}}
+- name: Webhook Notification to Teams for Build of {{bigIq01}}
   delegate_to: localhost
   uri:
     body:
