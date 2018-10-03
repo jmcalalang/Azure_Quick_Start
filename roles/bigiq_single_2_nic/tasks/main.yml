@@ -1,6 +1,6 @@
 # Create an F5 BIG-IQ instance with 2 NIC's
 
-- name: Create {{bigIq01}} Managemnet NIC in Resource Group {{resource_group_name}}
+- name: Create {{bigIq01}} Management NIC in Resource Group {{resource_group_name}}
   azure_rm_networkinterface:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"

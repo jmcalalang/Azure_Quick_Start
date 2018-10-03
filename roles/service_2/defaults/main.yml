@@ -4,7 +4,7 @@
 
 #module parameters
 serviceName: "Service2"
-frontEnd: "10.128.10.27"
+frontEnd: "10.128.10.202"
 frontEndClear: "80"
 frontEndSecure: "443"
 backEndMember1IP: "10.128.20.4"

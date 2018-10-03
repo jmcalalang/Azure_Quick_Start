@@ -20,7 +20,7 @@
     name: "{{virtual_network_name}}"
     address_prefixes: "{{virtual_network_address_prefix}}"
 
-- name: Create Subnet Management
+- name: Create {{managemenet_subnet}} Subnet
   azure_rm_subnet:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -31,7 +31,7 @@
     address_prefix_cidr: "{{management_address_prefix_cidr}}"
     virtual_network_name: "{{virtual_network_name}}"
 
-- name: Create Subnet External
+- name: Create {{external_subnet}} Subnet
   azure_rm_subnet:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
@@ -42,7 +42,7 @@
     address_prefix_cidr: "{{external_address_prefix_cidr}}"
     virtual_network_name: "{{virtual_network_name}}"
 
-- name: Create Subnet Internal
+- name: Create {{internal_subnet}} Subnet
   azure_rm_subnet:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
