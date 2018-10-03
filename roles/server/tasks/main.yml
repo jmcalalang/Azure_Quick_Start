@@ -27,7 +27,7 @@
         public_ip_address_name: "{{application_server_name}}-ext-pip0"
   register: "app_server_int_nic_private"
 
-- name: Edit {{application_server_name}}_int_nic Security Group in {{resource_group_name}} (Allow HTTP(S) Access)
+- name: Edit {{application_server_name}}_int_nic Security Group in Resource Group {{resource_group_name}} (Allow HTTP(S) Access)
   azure_rm_securitygroup:
       tenant: "{{ tenantId }}"
       client_id: "{{ clientId }}"
@@ -75,6 +75,10 @@
     admin_username: "{{ApplicationAdminUsername}}"
     admin_password: "{{ApplicationAdminPassword}}"
     network_interfaces: "{{application_server_name}}_int_nic"
+    append_tags: True
+    tags:
+      UbuntuServer: "18.04-LTS"
+      Applications: "All"
     image:
       offer: UbuntuServer
       publisher: Canonical
