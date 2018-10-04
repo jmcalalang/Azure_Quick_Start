@@ -32,6 +32,35 @@
       zone: "Azure_{{resource_group_name}}"
     body_format: json
 
+- name: Activate {{ bigIq02_int_pri_ip }} DCD Websafe Service
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/websafe/tasks/add-listener/"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+      module: "websafe"
+      listenerInterfaceAddress: "{{bigIq02_int_pri_ip}}"
+      deviceReference:
+        link: "https://localhost/mgmt/shared/resolver/device-groups/cm-esmgmt-logging-group/devices/272562f8-923f-4eb2-a342-3c0292d9b3de"
+    body_format: json
+
+- name: Activate {{ bigIq02_int_pri_ip }} Application Security Service
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/asm/tasks/add-syslog-listener"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+      module: "asm"
+      listenerInterfaceAddress: "{{bigIq02_int_pri_ip}}"
+      deviceReference:
+        link: "https://localhost/mgmt/shared/resolver/device-groups/cm-esmgmt-logging-group/devices/272562f8-923f-4eb2-a342-3c0292d9b3de"
+      indexName: "asmindex"
+    body_format: json
+
 - name: Webhook Notification to Teams for BIG-IP {{ bigIq02_int_pri_ip }} add as DCD
   delegate_to: localhost
   uri:
