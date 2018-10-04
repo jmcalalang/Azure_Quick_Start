@@ -1,7 +1,7 @@
 # Add a BIG-IQ DCD to a BIG-IQ CM
 
 - name: "Add a BIG-IQ DCD to a BIG-IQ CM"
-#  hosts: {{bigIq01}}
+  hosts: local
   gather_facts: False
   connection: local
 
