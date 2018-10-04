@@ -15,7 +15,7 @@
   set_fact:
     bigIq01_auth_token: "{{ bigIq01_auth_response.json.token.token }}"
 
-- name: Establish {{ bigIp_mgmt_pip }} Device Trust
+- name: Establish {{ bigIp01_int_nic_private }} Device Trust
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/global/tasks/device-trust"
     method: POST
@@ -23,7 +23,7 @@
     headers:
       X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
     body:
-      address: "{{ bigIp_mgmt_pip }}"
+      address: "{{ bigIp01_int_nic_private }}"
       httpsPort: 443
       userName: "{{ BIGIPadminUsername }}"
       password: "{{ BIGIPadminPassword }}"
@@ -50,7 +50,7 @@
 - debug:
     msg: Registered "{{ bigIp_machineId.json.items.machineId }}" as machineId
 
-- name: Discover {{ bigIp_mgmt_pip }} services
+- name: Discover {{ bigIp01_int_nic_private }} services
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/global/tasks/device-discovery"
     method: POST
@@ -68,7 +68,7 @@
        link: "https://localhost/mgmt/cm/system/machineid-resolver/{{ bigIp_machineId }}"
     body_format: json
 
-- name: Import {{ bigIp_mgmt_pip }} Local Traffic
+- name: Import {{ bigIp01_int_nic_private }} Local Traffic
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/adc-core/tasks/declare-mgmt-authority"
     method: POST
@@ -87,7 +87,7 @@
 #      clusterName: "{{ resource_group_name }}_Cluster"
     body_format: json
 
-- name: Import {{ bigIp_mgmt_pip }} Web Application Security
+- name: Import {{ bigIp01_int_nic_private }} Web Application Security
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/asm/tasks/declare-mgmt-authority"
     method: POST
@@ -106,7 +106,7 @@
 #      clusterName: "{{ resource_group_name }}_Cluster"
     body_format: json
 
-- name: Import {{ bigIp_mgmt_pip }} Fraud Protection Service
+- name: Import {{ bigIp01_int_nic_private }} Fraud Protection Service
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/websafe/tasks/declare-mgmt-authority"
     method: POST
@@ -125,10 +125,10 @@
 #      clusterName: "{{ resource_group_name }}_Cluster"
     body_format: json
 
-- name: Webhook Notification to Teams for BIG-IP {{ bigIp_mgmt_pip }} Discovery and Import
+- name: Webhook Notification to Teams for BIG-IP {{ bigIp01_int_nic_private }} Discovery and Import
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"BIG-IP {{ bigIp_mgmt_pip }} has been Discovered and Imported into BIG-IQ {{ bigIq01_mgmt_pip }}\"}"
+    body: "{\"text\": \"BIG-IP {{ bigIp01_int_nic_private }} has been Discovered and Imported into BIG-IQ {{ bigIq01_mgmt_pip }}\"}"
     body_format: json
     method: POST
     status_code: 200
