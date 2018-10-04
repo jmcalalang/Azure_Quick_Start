@@ -1,7 +1,5 @@
 # Add a BIG-IQ DCD to a BIG-IQ CM
 
-
-
 - name: Get {{bigIq01}} Authentication Token
   delegate_to: localhost
   uri:
