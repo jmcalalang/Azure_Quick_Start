@@ -1,9 +1,9 @@
 # Add a BIG-IQ DCD to a BIG-IQ CM
 
-- name: "Add a BIG-IQ DCD to a BIG-IQ CM"
-  hosts: local
-  gather_facts: False
-  connection: local
+#- name: "Add a BIG-IQ DCD to a BIG-IQ CM"
+#  hosts: local
+#  gather_facts: False
+#  connection: local
 
   vars_files:
     - /home/snops/f5-rs-azure/parent_parameters.yml
