@@ -6,7 +6,7 @@
   connection: local
 
   vars_files:
-    - /home/snops/f5-rs-azure/parent.parameters.yml
+    - /home/snops/f5-rs-azure/parent_parameters.yml
 
   tasks:
     - name: Get {{bigIq01}} Authentication Token
