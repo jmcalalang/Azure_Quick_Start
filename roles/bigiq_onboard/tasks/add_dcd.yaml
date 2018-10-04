@@ -23,13 +23,13 @@
     headers:
       X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
     body:
-    	address": "{{ bigIq02_int_pri_ip }}"
-    	bigIqUsername: "{{ bigIq02Admin }}"
-    	bigIqPassword: "{{ bigIq02Password }}"
-    	httpPort": 9200
-    	transportAddress: "{{ bigIq02_int_pri_ip }}"
-    	transportPort: 9300
-    	zone: "Azure_Zone"
+      address": "{{ bigIq02_int_pri_ip }}"
+      bigIqUsername: "{{ bigIq02Admin }}"
+      bigIqPassword: "{{ bigIq02Password }}"
+      httpPort": 9200
+      transportAddress: "{{ bigIq02_int_pri_ip }}"
+      transportPort: 9300
+      zone: "Azure_Zone"
     body_format: json
 
 - name: Webhook Notification to Teams for BIG-IP {{ bigIq02_int_pri_ip }} add as DCD
