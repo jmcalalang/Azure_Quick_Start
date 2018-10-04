@@ -1,4 +1,4 @@
-# Onboard a BIG-IQ 2 NIC installation with CM Personality
+# Discovery and Import a BIG-IP to a BIG-IQ
 
 - name: Get {{bigIq01}} Authentication Token
   delegate_to: localhost
@@ -28,9 +28,9 @@
       userName: "{{ BIGIPadminUsername }}"
       password: "{{ BIGIPadminPassword }}"
       clusterName: "{{ resource_group_name }}_Cluster"
-      useBigiqSync: false
-      deployWhenDscChangesPending: false
-      name: "trust_{{ bigIp_mgmt_pip }}"
+#      useBigiqSync: false
+#      deployWhenDscChangesPending: false
+#      name: "trust_{{ bigIp_mgmt_pip }}"
     body_format: json
 
 - name: Gather {{ bigIp_mgmt_pip }} BIG-IP machineId Fact
@@ -63,12 +63,12 @@
        module: "asm"
        module: "fps"
        module: "security_shared"
-      name: "discovery_{{ bigIp_mgmt_pip }}"
+#      name: "discovery_{{ bigIp_mgmt_pip }}"
       deviceReference:
        link: "https://localhost/mgmt/cm/system/machineid-resolver/{{ bigIp_machineId }}"
     body_format: json
 
-- name: Import {{ bigIp_mgmt_pip }} services
+- name: Import {{ bigIp_mgmt_pip }} Local Traffic
   uri:
     url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/adc-core/tasks/declare-mgmt-authority"
     method: POST
@@ -76,15 +76,53 @@
     headers:
       X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
     body:
-      createChildTasks: false
-      skipDiscovery: true
+#      createChildTasks: false
+#      skipDiscovery: true
       deviceReference:
        link: "https://localhost/mgmt/cm/system/machineid-resolver/{{ bigIp_machineId }}"
-      snapshotWorkingConfig: false
-      useBigiqSync: false
-      deployWhenDscChangesPending: false
-      name: "import-adc_core_{{ bigIp_mgmt_pip }}"
-      clusterName: "{{ resource_group_name }}_Cluster"
+#      snapshotWorkingConfig: false
+#      useBigiqSync: false
+#      deployWhenDscChangesPending: false
+#      name: "import-adc_core_{{ bigIp_mgmt_pip }}"
+#      clusterName: "{{ resource_group_name }}_Cluster"
+    body_format: json
+
+- name: Import {{ bigIp_mgmt_pip }} Web Application Security
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/asm/tasks/declare-mgmt-authority"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+#      createChildTasks: false
+#      skipDiscovery: true
+      deviceReference:
+       link: "https://localhost/mgmt/cm/system/machineid-resolver/{{ bigIp_machineId }}"
+#      snapshotWorkingConfig: false
+#      useBigiqSync: false
+#      deployWhenDscChangesPending: false
+#      name: "import-adc_core_{{ bigIp_mgmt_pip }}"
+#      clusterName: "{{ resource_group_name }}_Cluster"
+    body_format: json
+
+- name: Import {{ bigIp_mgmt_pip }} Fraud Protection Service
+  uri:
+    url: "https://{{bigIq01_mgmt_pip}}/mgmt/cm/websafe/tasks/declare-mgmt-authority"
+    method: POST
+    validate_certs: no
+    headers:
+      X-F5-Auth-Token: "{{ bigIq01_auth_token }}"
+    body:
+#      createChildTasks: false
+#      skipDiscovery: true
+      deviceReference:
+       link: "https://localhost/mgmt/cm/system/machineid-resolver/{{ bigIp_machineId }}"
+#      snapshotWorkingConfig: false
+#      useBigiqSync: false
+#      deployWhenDscChangesPending: false
+#      name: "import-adc_core_{{ bigIp_mgmt_pip }}"
+#      clusterName: "{{ resource_group_name }}_Cluster"
     body_format: json
 
 - name: Webhook Notification to Teams for BIG-IP {{ bigIp_mgmt_pip }} Discovery and Import
