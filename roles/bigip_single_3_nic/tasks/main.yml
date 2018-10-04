@@ -84,7 +84,7 @@
 
 - name: Assign {{instanceName}}-{{resource_group_name}}-mgmt Fact
   set_fact:
-    bigIq01_mgmt_pip: "{{ bigIp_mgmt_nic_external.state.ip_address }}"
+    bigIp_mgmt_pip: "{{ bigIp_mgmt_nic_external.state.ip_address }}"
 
 - debug:
     msg: Registered "{{ bigIp_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
