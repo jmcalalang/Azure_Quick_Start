@@ -12,3 +12,5 @@ docker run --restart=unless-stopped --name=f5-hello-world-green -dit -p 82:8080 
 docker run --restart=unless-stopped --name=dvwa -d -p 81:80 infoslack/dvwa
 # Hackazon for AS3 with WAF:
 docker run --restart=unless-stopped --name=hackazon -d -p 83:80 mutzel/all-in-one-hackazon:postinstall supervisord -n
+# ASM Policy Validator:
+docker run --restart=unless-stopped --name=app-sec -dit -p 445:8443 artioml/f5-app-sec

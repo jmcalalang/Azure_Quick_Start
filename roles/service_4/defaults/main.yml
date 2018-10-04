@@ -4,7 +4,7 @@
 
 #module parameters
 serviceName: "Service4"
-frontEnd: "10.128.10.29"
+frontEnd: "10.128.10.204"
 backEndMember1IP: "10.128.20.4"
 backEndMember1Port: "83"
 backEndMember2IP: "10.128.20.4"
