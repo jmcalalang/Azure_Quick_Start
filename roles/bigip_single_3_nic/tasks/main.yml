@@ -89,7 +89,7 @@
 - debug:
     msg: Registered "{{ bigIp_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
 
-- name: "Webhook Notification to Teams for build of {{{resource_group_name}}.{{location}}.cloudapp.azure.com in Resource Group {{resource_group_name}}
+- name: Webhook Notification to Teams for build of {{{resource_group_name}}.{{location}}.cloudapp.azure.com in Resource Group {{resource_group_name}}
   delegate_to: localhost
   uri:
     body:
