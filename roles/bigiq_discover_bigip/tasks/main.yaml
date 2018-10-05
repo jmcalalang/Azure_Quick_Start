@@ -31,6 +31,7 @@
 #      useBigiqSync: false
 #      deployWhenDscChangesPending: false
 #      name: "trust_{{ bigIp_mgmt_pip }}"
+    status_code: 202
     body_format: json
 
 - name: Gather {{ bigIp_mgmt_pip }} BIG-IP machineId Fact
