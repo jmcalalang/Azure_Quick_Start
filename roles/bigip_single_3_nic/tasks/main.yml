@@ -72,24 +72,23 @@
       vnetResourceGroupName:
         value: "{{vnetResourceGroupName}}"
 
-- name: Gather {{instanceName}}-{{resource_group_name}}-mgmt Facts
-  azure_rm_publicipaddress:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
-    resource_group: "{{resource_group_name}}"
-    name: "{{instanceName}}-{{resource_group_name}}-mgmt"
-  register: "bigIp_mgmt_nic_external"
+#- name: Gather {{instanceName}}-{{resource_group_name}}-mgmt Facts
+#  azure_rm_publicipaddress:
+#    tenant: "{{ tenantId }}"
+#    client_id: "{{ clientId }}"
+#    secret: "{{ servicePrincipalSecret }}"
+#    subscription_id: "{{ subscriptionId }}"
+#    resource_group: "{{resource_group_name}}"
+#  register: "bigIp_mgmt_nic_external"
 
-- name: Assign {{instanceName}}-{{resource_group_name}}-mgmt Fact
-  set_fact:
-    bigIp_mgmt_pip: "{{ bigIp_mgmt_nic_external.state.ip_address }}"
+#- name: Assign {{instanceName}}-{{resource_group_name}}-mgmt Fact
+#  set_fact:
+#    bigIp_mgmt_pip: "{{ bigIp_mgmt_nic_external.state.ip_address }}"
 
-- debug:
-    msg: Registered "{{ bigIp_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
+#- debug:
+#    msg: Registered "{{ bigIp_mgmt_nic_external.state.ip_address }}" as Management NIC External IP
 
-- name: Webhook Notification to Teams for build of {{resource_group_name}}.{{location}}.cloudapp.azure.com in Resource Group {{resource_group_name}}
+- name: Webhook Notification to Teams for build of {{instanceName}}.{{resource_group_name}}.{{location}}.cloudapp.azure.com in Resource Group {{resource_group_name}}
   delegate_to: localhost
   uri:
     body:
@@ -105,7 +104,7 @@
           targets:
             -
               os: default
-              uri: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+              uri: "https://{{instanceName}}.{{resource_group_name}}.{{location}}.cloudapp.azure.com"
       text: "Click **BIG-IP Button** to be taken to the BIG-IP!"
       themeColor: 0072C6
       title: "New BIG-IP created in Resource Group {{resource_group_name}}"

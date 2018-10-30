@@ -2,8 +2,7 @@
 # for a single BIGIP with 3-nic's
 
 ---
--
-  name: "Run F5 ARM Template to build a single BIG-IP with 1 NIC"
+- name: "Run F5 ARM Template to build a single BIG-IP with 1 NIC"
   azure_rm_deployment:
     client_id: "{{ clientId }}"
     location: "{{location}}"
@@ -62,8 +61,8 @@
         value: "{{vnetName}}"
       vnetResourceGroupName:
         value: "{{vnetResourceGroupName}}"
--
-  name: "Webhook Notification to Teams for Build of BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com"
+
+- name: Webhook Notification to Teams for build of {{instanceName}}.{{resource_group_name}}.{{location}}.cloudapp.azure.com in Resource Group {{resource_group_name}}
   delegate_to: localhost
   uri:
     body:
@@ -79,10 +78,10 @@
           targets:
             -
               os: default
-              uri: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+              uri: "https://{{instanceName}}.{{resource_group_name}}.{{location}}.cloudapp.azure.com"
       text: "Click **BIG-IP Button** to be taken to the BIG-IP!"
       themeColor: 0072C6
-      title: "New BIG-IP Environment Created in Resource Group {{resource_group_name}}"
+      title: "New BIG-IP created in Resource Group {{resource_group_name}}"
     body_format: json
     method: POST
     status_code: 200
