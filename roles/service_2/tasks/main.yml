@@ -65,14 +65,14 @@
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 80
         access: Allow
-        priority: 110
+        priority: 100
         direction: Inbound
       - name: 'AllowHTTPS'
         protocol: Tcp
         source_address_prefix: '{{restrictedSrcAddress}}'
         destination_port_range: 443
         access: Allow
-        priority: 111
+        priority: 101
         direction: Inbound
 
 - name: Webhook Notification to Teams for Build of Service 2
