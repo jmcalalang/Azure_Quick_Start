@@ -4,7 +4,6 @@
 
 Each solution is broken out into individual components to be run alone, however they can be stitched together as needed with Ansible Roles, a full demo can be built using the **run_ansible_full_stack.yml** playbook. This solution is built around BIG-IQ as a License Manager(LM) server, if you are not using BIG-IQ as a license server you may need to modify this solution.
 
-
 This solution is ideally used in conjunction with the F5 Resource Solutions, there are different projects on-going so please refer to the index for things that can be shown.
 
 I highly recommend using a docker container created from F5 engineer Yossi: `docker run -p 2222:22 -p 10000:8080 -it --rm f5usecases/f5-rs-container:latest` this container includes the needed modules for BIG-IP, Azure, AWS and Ansible
@@ -15,15 +14,52 @@ The **parent_parameters.yml** located at the root of the solutions repository co
 
 The password to **parent_parameters.yml** is `password`
 
-There are some main variables used in the solution (including your Service Principal AzureAD credentials), these are used as repeated variables and you should make sure your **resource_group_name** is unique to the **location** you use this deployment.
+There are some main variables used in the solution (including your Service Principal AzureAD credentials), these are used as repeated variables and you should make sure your **resource_group_name** is unique to the **location** you use this deployment. There are also variables in defaults main of the Roles
 
-**resource_group_name**: "f5-rs-azure"
-application_server_name must be between 3 and 24 characters in length and use numbers and lower-case letters only
-
-**application_server_name**: "appserver01"
-region for deployment
-
-**location**: "westus"
+| Parameters                       | Example      | Used In  | Notes  |   |
+|------------------------|-------|---|---|---|
+| subscriptionId         |  |   |   |   |
+| tenantId               |  |   |   |   |
+| clientId               |  |   |   |   |
+| servicePrincipalSecret |  |   |   |   |
+|                        |       |   |   |   |
+| location               |       |   |   |   |
+| resource_group_name                       |       |   |   |   |
+| application_server_name                       |       |   |   |   |
+| BigIp_instance_name                       |       |   |   |   |
+|                        |       |   |   |   |
+| ApplicationAdminUsername                       |       |   |   |   |
+| ApplicationAdminPassword                       |       |   |   |   |
+|                        |       |   |   |   |
+| BIGIPadminUsername                       |       |   |   |   |
+| BIGIPadminPassword                       |       |   |   |   |
+|                        |       |   |   |   |
+| bigIqLicenseHost                       |       |   |   |   |
+| bigIqLicenseUsername                       |       |   |   |   |
+| bigIqLicensePassword                       |       |   |   |   |
+| bigIqLicensePool                       |       |   |   |   |
+| bigIqLicenseSkuKeyword1                       |       |   |   |   |
+| bigIqLicenseUnitOfMeasure                       |       |   |   |   |
+|                        |       |   |   |   |
+| bigIqHostPassphrase                       |       |   |   |   |
+| bigIqMSPRegKey                       |       |   |   |   |
+| bigIq01                       |       |   |   |   |
+| bigIq01_systemPersonality                       |       |   |   |   |
+| bigIq01_mgmt_pip                       |       |   |   |   |
+| bigIq01_int_pri_ip                       |       |   |   |   |
+| bigIq01Admin                       |       |   |   |   |
+| bigIq01Password                       |       |   |   |   |
+| bigIq01License                       |       |   |   |   |
+| bigIq02                       |       |   |   |   |
+| bigIq02_systemPersonality                      |       |   |   |   |
+| bigIq02_mgmt_pip                       |       |   |   |   |
+| bigIq02_int_pri_ip                       |       |   |   |   |
+| bigIq02Admin                       |       |   |   |   |
+| bigIq02Password                       |       |   |   |   |
+| bigIq02License                       |       |   |   |   |
+|                        |       |   |   |   |
+| teams_webhook                       |       |   |   |   |
+|                        |       |   |   |   |
 
 ### Teams Incoming Webhook
 
@@ -35,19 +71,7 @@ If you are running this solution from your own environment, you should read the 
 
 ### Definition of Solutions:
 
-**run_ansible_server** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
-
-**run_ansible_azure_net** - This solution will build a Resource Group, Virtual Network and 3 subnets in Azure, the network is based of the IP ranges from the F5 vLab
-
-**run_ansible_bigip_cluster_3_nic** - This solution will deploy an F5 ARM template building two BIG-IP's with 3 NIC's in a Device Service Cluster
-
-**run_ansible_bigip_single_1_nic** - This solution will deploy an F5 ARM template building a single BIG-IP with 1 NIC
-
-**run_ansible_bigip_single_3_nic** - This solution will deploy an F5 ARM template building a single BIG-IP with 3 NIC's (This is the Default Deployment)
-
-**run_ansible_destroy_all_services** - This solution will destroy all services (Service 1-5) deployed on your BIG-IP
-
-**run_ansible_destroy_environment** - This solution will destroy your Resource Group, this is using the **force** option so all objects will be destroyed without confirmation
+#### Solutions
 
 **run_ansible_full_stack** - This solution will deploy a full stack environment. It is by default setup to execute the the below Roles in order, this can be modified in the playbook and *parent_parameters*.
  - **run_ansible_azure_net**
@@ -55,14 +79,37 @@ If you are running this solution from your own environment, you should read the 
  - **run_ansible_bigip_single_3_nic**
  - **run_ansible_services_4**
 
-**run_ansible_services_1** - Create or update Service 1; Imperative Build Simple HTTP Application
+#### Infrastructure
 
-**run_ansible_services_2** - Create or update Service 2; f5.http iapp Build Advanced HTTPS/WAF Application
+**run_ansible_azure_net** - This solution will build a Resource Group, Virtual Network and 3 subnets in Azure, the network is based of the IP ranges from the F5 vLab
 
-**run_ansible_services_3** - Create or update Service 3; AS3 Build Simple HTTP Application
+**run_ansible_server** - This solution will build a ubuntu box, modify/create a security group and execute an Azure extension script to install Docker and launch some testing containers on ports 80-83 of the server
 
-**run_ansible_services_4** - Create or update Service 4; AS3 Build Advanced HTTPS/WAF Application
+**run_ansible_bigip_cluster_3_nic** - This solution will deploy an F5 ARM template building two BIG-IP's with 3 NIC's in a Device Service Cluster
 
-**run_ansible_services_5** - Create or update Service 5; AS3 Build Advanced HTTPS/APM Application
+**run_ansible_bigip_single_1_nic** - This solution will deploy an F5 ARM template building a single BIG-IP with 1 NIC
+
+**run_ansible_bigip_single_3_nic** - This solution will deploy an F5 ARM template building a single BIG-IP with 3 NIC's (This is the Default Deployment)
+
+**run_ansible_destroy_environment** - This solution will destroy your Resource Group, this is using the **force** option so all objects will be destroyed without confirmation
+
+#### Onboarding
+
+#### Services
+
+**run_ansible_services** - If you are running this solution on an F5 PA-VE you can only have **one** at a time
+
+  - **run_ansible_services_1** - Create or update Service 1; Imperative Build Simple HTTP Application
+  - **run_ansible_services_2** - Create or update Service 2; f5.http iapp Build Advanced HTTPS/WAF Application
+  - **run_ansible_services_3** - Create or update Service 3; AS3 Build Simple HTTP Application
+  - **run_ansible_services_4** - Create or update Service 4; AS3 Build Advanced HTTPS/WAF Application
+  - **run_ansible_services_5** - Create or update Service 5; AS3 Build Advanced HTTPS/APM Application (in process)
+  - **run_ansible_services_6** - Create or update Service 6; BIG-IQ Build Application for HTTPS (in process)  
+  - **run_ansible_services_7** - Create or update Service 7; AS3 to BIG-IQ Build Application for HTTPS (in process)  
+  - **run_ansible_services_8** - Create or update Service 8; Blue Build Application for HTTPS (in process)
+
+**run_ansible_destroy_all_services** - This solution will destroy all services (Service 1-5) deployed on your BIG-IP, and remove all external security group added roles (purges to default)
+
+#### Notifications
 
 **run_ansible_teams_webhook_test** - Test a webhook call for Microsoft Teams
