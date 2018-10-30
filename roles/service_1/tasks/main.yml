@@ -73,7 +73,7 @@
   azure_rm_securitygroup:
     client_id: "{{ clientId }}"
     name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
-    purge_rules: false
+    purge_rules: yes
     resource_group: "{{resource_group_name}}"
     rules:
       -
@@ -81,7 +81,7 @@
         destination_port_range: 80
         direction: Inbound
         name: AllowHTTP
-        priority: 100
+        priority: 110
         protocol: Tcp
         source_address_prefix: "{{restrictedSrcAddress}}"
     secret: "{{ servicePrincipalSecret }}"
