@@ -58,7 +58,7 @@
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
-    purge_rules: yes
+    purge_rules: no
     rules:
       - name: 'AllowHTTP'
         protocol: Tcp
