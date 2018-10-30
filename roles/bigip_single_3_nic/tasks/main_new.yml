@@ -23,7 +23,7 @@
     location: "{{location}}"
     state: present
 
-- name: "Webhook Notification to Teams for Build of BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com"
+- name: "Webhook Notification to Teams for Build of BIG-IP {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
   delegate_to: localhost
   uri:
     body:
@@ -39,7 +39,7 @@
           targets:
             -
               os: default
-              uri: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+              uri: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
       text: "Click **BIG-IP Button** to be taken to the BIG-IP!"
       themeColor: 0072C6
       title: "New BIG-IP Environment Created in Resource Group {{resource_group_name}}"

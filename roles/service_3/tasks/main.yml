@@ -4,7 +4,7 @@
   bigip_wait:
     timeout: 300
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
   delegate_to: localhost
@@ -13,19 +13,19 @@
   bigip_iapplx_package:
     package: "{{ AS3package }}"
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: present
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
   delegate_to: localhost
 
-- name: Get BIG-IP Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Get BIG-IP Authentication Token from {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
     body_format: json
     method: POST
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    url: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
     status_code: 200
     validate_certs: no
   register: bigip_auth_response
@@ -47,7 +47,7 @@
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
     method: POST
     status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    url: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
 - name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
@@ -71,7 +71,7 @@
 - name: Webhook Notification to Teams for Build of {{ serviceName }}
   delegate_to: localhost
   uri:
-    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "{{ serviceName }} has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **{{ serviceName }} Button** to be taken to the {{ serviceName }} Application", "potentialAction": [{ "@type": "OpenUri", "name": "{{ serviceName }}", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}2.{{location}}.cloudapp.azure.com" }] }] }
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "{{ serviceName }} has been created on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **{{ serviceName }} Button** to be taken to the {{ serviceName }} Application", "potentialAction": [{ "@type": "OpenUri", "name": "{{ serviceName }}", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}2.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200
