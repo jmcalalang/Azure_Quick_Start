@@ -98,6 +98,16 @@
     state: absent
   delegate_to: localhost
 
+- name: Edit Security Group {{instanceName}}-{{resource_group_name}}-ext-nsg in {{resource_group_name}}
+  azure_rm_securitygroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
+    purge_rules: yes
+
 - name: Webhook Notification to Teams for Destruction of all Services on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
