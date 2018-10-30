@@ -65,7 +65,7 @@
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{resource_group_name}}-ext-nsg"
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
     purge_rules: no
     rules:
       - name: 'AllowHTTPS'

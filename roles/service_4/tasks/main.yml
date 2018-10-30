@@ -72,14 +72,14 @@
     url: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}
+- name: Edit Security Group {{instanceName}}-{{resource_group_name}}-ext-nsg in {{resource_group_name}}
   azure_rm_securitygroup:
     tenant: "{{ tenantId }}"
     client_id: "{{ clientId }}"
     secret: "{{ servicePrincipalSecret }}"
     subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
-    name: "{{resource_group_name}}-ext-nsg"
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
     purge_rules: no
     rules:
       - name: 'AllowHTTP'

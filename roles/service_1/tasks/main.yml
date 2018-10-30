@@ -72,7 +72,7 @@
 - name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
   azure_rm_securitygroup:
     client_id: "{{ clientId }}"
-    name: "{{resource_group_name}}-ext-nsg"
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
     purge_rules: false
     resource_group: "{{resource_group_name}}"
     rules:
