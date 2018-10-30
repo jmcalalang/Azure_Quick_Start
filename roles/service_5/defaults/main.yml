@@ -4,3 +4,4 @@
 
 #module parameters
 restrictedSrcAddress: "*"
+instanceName: "{{BigIp_instance_name}}"

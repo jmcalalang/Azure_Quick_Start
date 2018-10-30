@@ -3,3 +3,4 @@
 # use parent_parameters.yml for secure variables (ansible-vault)
 
 #module parameters
+instanceName: "{{BigIp_instance_name}}"

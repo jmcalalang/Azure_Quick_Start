@@ -2,7 +2,7 @@
 ---
 - bigip_wait:
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     timeout: 300
     user: "{{BIGIPadminUsername}}"
     validate_certs: false
@@ -13,15 +13,15 @@
   bigip_partition:
     name: "{{ serviceName }}"
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: false
     state: present
   delegate_to: localhost
 
-- name: Create pool {{ serviceName }}_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Create pool {{ serviceName }}_pl on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
@@ -35,9 +35,9 @@
       - /Common/http
   delegate_to: localhost
 
-- name: Add pool member {{ backEndMember1IP }} to pool {{ serviceName }}_pl on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Add pool member {{ backEndMember1IP }} to pool {{ serviceName }}_pl on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool_member:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
@@ -52,9 +52,9 @@
     ratio: 2
   delegate_to: localhost
 
-- name: Add virtual server "{{ serviceName }}_vs" for {{ serviceName }} on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Add virtual server "{{ serviceName }}_vs" for {{ serviceName }} on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
@@ -72,8 +72,8 @@
 - name: "Edit Security Group {{resource_group_name}}-ext-nsg in {{resource_group_name}}"
   azure_rm_securitygroup:
     client_id: "{{ clientId }}"
-    name: "{{resource_group_name}}-ext-nsg"
-    purge_rules: false
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
+    purge_rules: yes
     resource_group: "{{resource_group_name}}"
     rules:
       -
@@ -81,7 +81,7 @@
         destination_port_range: 80
         direction: Inbound
         name: AllowHTTP
-        priority: 100
+        priority: 110
         protocol: Tcp
         source_address_prefix: "{{restrictedSrcAddress}}"
     secret: "{{ servicePrincipalSecret }}"
@@ -90,7 +90,7 @@
 
 - name: Webhook Notification to Teams for Build of {{ serviceName }}
   uri:
-    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "{{ serviceName }} has been created on {{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **{{ serviceName }} Button** to be taken to the {{ serviceName }} Application", "potentialAction": [{ "@type": "OpenUri", "name": "{{ serviceName }}", "targets": [{ "os": "default", "uri": "http://{{resource_group_name}}0.{{location}}.cloudapp.azure.com" }] }] }
+    body: { "@context": "http://schema.org/extensions", "@type": "MessageCard", "themeColor": "0072C6", "title": "{{ serviceName }} has been created on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com", "text": "Click **{{ serviceName }} Button** to be taken to the {{ serviceName }} Application", "potentialAction": [{ "@type": "OpenUri", "name": "{{ serviceName }}", "targets": [{ "os": "default", "uri": "http://{{instanceName}}-{{resource_group_name}}0.{{location}}.cloudapp.azure.com" }] }] }
     body_format: json
     method: POST
     status_code: 200

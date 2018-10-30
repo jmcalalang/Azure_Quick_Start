@@ -4,18 +4,18 @@
   bigip_wait:
     timeout: 300
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
   delegate_to: localhost
 
-- name: Get Bigip Authentication Token from {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Get Bigip Authentication Token from {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     body: '{"username":"{{BIGIPadminUsername}}","password":"{{BIGIPadminPassword}}","loginProvidername":"tmos"}'
     body_format: json
     method: POST
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
+    url: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/authn/login"
     status_code: 200
     validate_certs: no
   register: bigip_auth_response
@@ -24,21 +24,21 @@
   set_fact:
     bigip_auth_token: "{{ bigip_auth_response.json.token.token }}"
 
-- name: Destroy All Services in AS3 on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy All Services in AS3 on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
     headers:
       X-F5-Auth-Token: "{{ bigip_auth_token }}"
     method: DELETE
     status_code: 200
-    url: "https://{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
+    url: "https://{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com/mgmt/shared/appsvcs/declare"
     validate_certs: no
 
-- name: Destroy Service2 from f5.http iApp on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service2 from f5.http iApp on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_iapp_service:
     name: Service2
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     state: absent
     user: "{{BIGIPadminUsername}}"
     validate_certs: no
@@ -46,7 +46,7 @@
 
 - name: Destroy Service node {{application_server_name}} leftover from AS3 and iApp's
   bigip_node:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
@@ -55,9 +55,9 @@
     name: 10.128.20.4
   delegate_to: localhost
 
-- name: Destroy Service1 virtual server "Service1_vs" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service1 virtual server "Service1_vs" on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_virtual_server:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{ BIGIPadminUsername }}"
     password: "{{ BIGIPadminPassword }}"
     validate_certs: false
@@ -66,9 +66,9 @@
     partition: Service1
   delegate_to: localhost
 
-- name: Destroy Service1 pool "Service1_pl" on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Destroy Service1 pool "Service1_pl" on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   bigip_pool:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
@@ -79,7 +79,7 @@
 
 - name: Destroy Service1 node {{application_server_name}}
   bigip_node:
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     password: "{{BIGIPadminPassword}}"
     validate_certs: false
@@ -92,16 +92,26 @@
   bigip_partition:
     name: Service1
     password: "{{BIGIPadminPassword}}"
-    server: "{{resource_group_name}}.{{location}}.cloudapp.azure.com"
+    server: "{{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com"
     user: "{{BIGIPadminUsername}}"
     validate_certs: false
     state: absent
   delegate_to: localhost
 
-- name: Webhook Notification to Teams for Destruction of all Services on {{resource_group_name}}.{{location}}.cloudapp.azure.com
+- name: Edit Security Group {{instanceName}}-{{resource_group_name}}-ext-nsg in {{resource_group_name}}
+  azure_rm_securitygroup:
+    tenant: "{{ tenantId }}"
+    client_id: "{{ clientId }}"
+    secret: "{{ servicePrincipalSecret }}"
+    subscription_id: "{{ subscriptionId }}"
+    resource_group: "{{resource_group_name}}"
+    name: "{{instanceName}}-{{resource_group_name}}-ext-nsg"
+    purge_rules: yes
+
+- name: Webhook Notification to Teams for Destruction of all Services on {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com
   delegate_to: localhost
   uri:
-    body: "{\"text\": \"All Services on BIG-IP {{resource_group_name}}.{{location}}.cloudapp.azure.com have been destroyed!\"}"
+    body: "{\"text\": \"All Services on BIG-IP {{instanceName}}-{{resource_group_name}}.{{location}}.cloudapp.azure.com have been destroyed!\"}"
     body_format: json
     method: POST
     status_code: 200
