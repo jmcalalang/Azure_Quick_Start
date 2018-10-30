@@ -101,7 +101,7 @@
           targets:
             -
               os: default
-              uri: "https://{{instanceName}}.{{resource_group_name}}-0.{{location}}.cloudapp.azure.com"
+              uri: "https://{{instanceName}}-{{resource_group_name}}-0.{{location}}.cloudapp.azure.com"
         -
           ? "@type"
           : OpenUri
@@ -109,7 +109,7 @@
           targets:
             -
               os: default
-              uri: "https://{{instanceName}}.{{resource_group_name}}-1.{{location}}.cloudapp.azure.com"
+              uri: "https://{{instanceName}}-{{resource_group_name}}-1.{{location}}.cloudapp.azure.com"
       text: "Click **BIG-IP Button** to be taken to a BIG-IP!"
       themeColor: 0072C6
       title: "New BIG-IP Environment Created in Resource Group {{resource_group_name}}"
