@@ -1,0 +1,6 @@
+sudo: false
+language: python
+before_install:
+    - sudo apt-get -qq update
+python:
+    - '2.7'
