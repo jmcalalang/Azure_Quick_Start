@@ -18,14 +18,14 @@ There are some main variables used in the solution (including your Service Princ
 
 | Parameters                       | Example      | Required  | Used In  | Notes  |
 |------------------------|-------|---|---|---|
-| subscriptionId         |  | yes  | all  |   |
-| tenantId               |  | yes  | all  |   |
-| clientId               |  | yes  | all  |   |
-| servicePrincipalSecret |  | yes  | all  |   |
+| subscriptionId         |  | yes  | all  | This is acquired from an Azure AD Application  |
+| tenantId               |  | yes  | all  | This is acquired from an Azure AD Application  |
+| clientId               |  | yes  | all  | This is acquired from an Azure AD Application  |
+| servicePrincipalSecret |  | yes  | all  | This is acquired from an Azure AD Application  |
 |                        |       |   |   |   |
 | location               | eastus      |   | all  |   |
-| resource_group_name                       | f5-rs-azure      |   | all  |   |
-| application_server_name                       | internalsrv01      |   |   |   |
+| resource_group_name                       | f5-rs-azure      |   | all  | Should be unique  |
+| application_server_name                       | internalsrv01      |   |   | Storage accounts are per-subscription  |
 | BigIp_instance_name                       | bigip01      |   |   |   |
 |                        |       |   |   |   |
 | ApplicationAdminUsername                       | azureuser      |   |   |   |
