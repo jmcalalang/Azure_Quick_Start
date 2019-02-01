@@ -2,7 +2,7 @@
 
 ##### Install Artiom's awesome Demo App #####
 # install Docker
-sudo apt-get -y install docker.io
+sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 # Spin up Docker Instances
 
 # F5-Hello-World for HTTP Sites:
