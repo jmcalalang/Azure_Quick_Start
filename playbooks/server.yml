@@ -3,5 +3,7 @@
   hosts: localhost
   roles:
     - server
+  vars:
+      awd: "{{ lookup('env', 'PWD') }}"
   vars_files:
-    - /home/snops/f5-rs-azure/parent_parameters.yml
+    - "{{awd}}/parent_parameters.yml"
