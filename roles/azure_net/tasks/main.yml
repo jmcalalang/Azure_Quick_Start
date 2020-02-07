@@ -2,19 +2,11 @@
 
 - name: Create {{resource_group_name}} Resource Group
   azure_rm_resourcegroup:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     name: "{{resource_group_name}}"
     location: "{{location}}"
 
 - name: Create {{virtual_network_name}}
   azure_rm_virtualnetwork:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     location: "{{location}}"
     resource_group: "{{resource_group_name}}"
     name: "{{virtual_network_name}}"
@@ -22,10 +14,6 @@
 
 - name: Create {{managemenet_subnet}} Subnet
   azure_rm_subnet:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{managemenet_subnet}}"
     address_prefix_cidr: "{{management_address_prefix_cidr}}"
@@ -33,10 +21,6 @@
 
 - name: Create {{external_subnet}} Subnet
   azure_rm_subnet:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{external_subnet}}"
     address_prefix_cidr: "{{external_address_prefix_cidr}}"
@@ -44,10 +28,6 @@
 
 - name: Create {{internal_subnet}} Subnet
   azure_rm_subnet:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{internal_subnet}}"
     address_prefix_cidr: "{{internal_address_prefix_cidr}}"

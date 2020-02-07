@@ -2,10 +2,6 @@
 
 - name: Create {{application_server_name}} Storage Account in Resource Group {{resource_group_name}}
   azure_rm_storageaccount:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     location: "{{location}}"
     resource_group: "{{resource_group_name}}"
     name: "{{application_storage_account}}"
@@ -13,10 +9,6 @@
 
 - name: Create {{application_server_name}} Internal NIC in Resource Group {{resource_group_name}}
   azure_rm_networkinterface:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     resource_group: "{{resource_group_name}}"
     name: "{{application_server_name}}_int_nic"
     virtual_network: "{{virtual_network_name}}"
@@ -29,42 +21,27 @@
 
 - name: Edit {{application_server_name}}_int_nic Security Group in Resource Group {{resource_group_name}} (Allow HTTP(S) Access)
   azure_rm_securitygroup:
-      tenant: "{{ tenantId }}"
-      client_id: "{{ clientId }}"
-      secret: "{{ servicePrincipalSecret }}"
-      subscription_id: "{{ subscriptionId }}"
       resource_group: "{{resource_group_name}}"
       name: "{{application_server_name}}_int_nic"
       purge_rules: yes
       rules:
           - name: 'AllowHTTP'
             protocol: Tcp
-            source_address_prefix: 'VirtualNetwork'
-            destination_port_range: "80-84"
+            source_address_prefix: '{{restrictedSrcAddress}}'
+            destination_port_range: "8080"
             access: Allow
             priority: 100
-            direction: Inbound
-          - name: 'AllowHTTPS'
-            protocol: Tcp
-            source_address_prefix: 'VirtualNetwork'
-            destination_port_range: "443-444"
-            access: Allow
-            priority: 101
             direction: Inbound
           - name: 'AllowSSH'
             protocol: Tcp
             source_address_prefix: '{{restrictedSrcAddress}}'
             destination_port_range: 22
-            access: Deny
-            priority: 102
+            access: Allow
+            priority: 101
             direction: Inbound
 
 - name: Create {{application_server_name}} Virtual Machine
   azure_rm_virtualmachine:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     location: "{{location}}"
     resource_group: "{{resource_group_name}}"
     name: "{{application_server_name}}"
@@ -88,10 +65,6 @@
 
 - name: Execute {{application_server_name}} Azure Extension
   azure_rm_virtualmachine_extension:
-    tenant: "{{ tenantId }}"
-    client_id: "{{ clientId }}"
-    secret: "{{ servicePrincipalSecret }}"
-    subscription_id: "{{ subscriptionId }}"
     location: "{{location}}"
     name: External-Script-to-install-Backend-Services
     resource_group: "{{resource_group_name}}"
