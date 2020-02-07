@@ -4,23 +4,17 @@
 # machine names must be between 3 and 24 characters in length and use numbers and lower-case letters only
 # big-iq personalities are either "big_iq" or "logging_node" a good starting big-iq passphrase is "This1STheP@ssphras3"
 
-# Azure Application Credentials
-subscriptionId: ""
-tenantId: ""
-clientId: ""
-servicePrincipalSecret: ""
-
 # Azure Resource Parameters, more in defaults main
 location: ""
 resource_group_name: ""
-application_server_name: ""
-BigIp_instance_name: ""
 
 # Parameters for Application Server Credentials, more in defaults main
+application_server_name: ""
 ApplicationAdminUsername: ""
 ApplicationAdminPassword: ""
 
 # Parameters for BIG-IP Credentials, more in defaults main
+BigIp_instance_name: ""
 BIGIPadminUsername: ""
 BIGIPadminPassword: ""
 
